@@ -47,6 +47,7 @@ logger = logging.getLogger("astrbot")
 
 if TYPE_CHECKING:
     from astrbot.core.cron.manager import CronJobManager
+    from astrbot.core.harness import HarnessEngine, HarnessTask, HarnessTaskStore
 
 
 class PlatformManagerProtocol(Protocol):
@@ -76,6 +77,8 @@ class Context:
         knowledge_base_manager: KnowledgeBaseManager,
         cron_manager: CronJobManager,
         subagent_orchestrator: SubAgentOrchestrator | None = None,
+        harness_engine: HarnessEngine | None = None,
+        harness_store: HarnessTaskStore | None = None,
     ) -> None:
         self._event_queue = event_queue
         """事件队列。消息平台通过事件队列传递消息事件。"""
@@ -100,6 +103,40 @@ class Context:
         self.cron_manager = cron_manager
         """Cron job manager, initialized by core lifecycle."""
         self.subagent_orchestrator = subagent_orchestrator
+        self.harness_engine = harness_engine
+        """Harness task engine, initialized by core lifecycle."""
+        self.harness_store = harness_store
+        """Harness task store sidecar, initialized by core lifecycle."""
+
+    async def get_current_harness_task(
+        self,
+        umo: str,
+    ) -> HarnessTask | None:
+        if self.harness_store is None:
+            return None
+        conversation_id = await self.conversation_manager.get_curr_conversation_id(umo)
+        if not conversation_id:
+            return None
+        return await self.harness_store.get_latest_task_for_conversation(conversation_id)
+
+    async def append_harness_trace(
+        self,
+        event: AstrMessageEvent,
+        event_type: str,
+        payload: dict[str, Any],
+    ) -> bool:
+        if self.harness_engine is None:
+            return False
+
+        try:
+            task = await self.get_current_harness_task(event.unified_msg_origin)
+            if task is None:
+                return False
+            await self.harness_engine.append_trace(task.task_id, event_type, payload)
+            return True
+        except Exception as e:  # noqa: BLE001
+            logger.debug("Failed to append harness trace %s: %s", event_type, e)
+            return False
 
     async def llm_generate(
         self,

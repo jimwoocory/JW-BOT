@@ -1,0 +1,8 @@
+{
+  "name": "opencli",
+  "version": "1.0.0",
+  "description": "OpenCLI 集成插件 - 430+ 命令支持",
+  "author": "OpenClaw Team",
+  "homepage": "",
+  "dependencies": []
+}

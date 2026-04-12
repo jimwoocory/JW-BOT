@@ -3,6 +3,7 @@ from astrbot import logger
 from ..message import Message
 from .compressor import LLMSummaryCompressor, TruncateByTurnsCompressor
 from .config import ContextConfig
+from .lossless_compressor import LosslessSummaryCompressor
 from .token_counter import EstimateTokenCounter
 from .truncator import ContextTruncator
 
@@ -61,6 +62,11 @@ class ContextManager:
 
             # 1. 基于轮次的截断 (Enforce max turns)
             if self.config.enforce_max_turns != -1:
+                logger.debug(
+                    "[CTX:TRUNCATE] enforcing max turns: keep=%d, drop=%d",
+                    self.config.enforce_max_turns,
+                    self.config.truncate_turns,
+                )
                 result = self.truncator.truncate_by_turns(
                     result,
                     keep_most_recent_turns=self.config.enforce_max_turns,
@@ -101,7 +107,22 @@ class ContextManager:
             The compressed/truncated message list.
 
         """
-        logger.debug("Compress triggered, starting compression...")
+        # Log which compression path is active.
+        if isinstance(self.compressor, LosslessSummaryCompressor):
+            logger.info(
+                "[CTX:LOSSLESS_SUMMARY] triggering lossless compaction: %d tokens",
+                prev_tokens,
+            )
+        elif isinstance(self.compressor, LLMSummaryCompressor):
+            logger.info(
+                "[CTX:LLM_SUMMARY] triggering LLM compression: %d tokens",
+                prev_tokens,
+            )
+        else:
+            logger.debug(
+                "[CTX:TRUNCATE] triggering turn truncation: %d tokens",
+                prev_tokens,
+            )
 
         messages = await self.compressor(messages)
 
@@ -123,9 +144,11 @@ class ContextManager:
             self.config.max_context_tokens,
         ):
             logger.info(
-                "Context still exceeds max tokens after compression, applying halving truncation...",
+                "[CTX:FALLBACK_TRUNCATE] context still exceeds max tokens after compression"
+                " (%d/%d), applying halving truncation",
+                tokens_after_summary,
+                self.config.max_context_tokens,
             )
-            # still need compress, truncate by half
             messages = self.truncator.truncate_by_halving(messages)
 
         return messages

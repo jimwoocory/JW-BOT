@@ -4,6 +4,7 @@ from .admin import AdminCommands
 from .alter_cmd import AlterCmdCommands
 from .conversation import ConversationCommands
 from .help import HelpCommand
+from .harness import HarnessCommands
 from .llm import LLMCommands
 from .persona import PersonaCommands
 from .plugin import PluginCommands
@@ -18,6 +19,7 @@ __all__ = [
     "AlterCmdCommands",
     "ConversationCommands",
     "HelpCommand",
+    "HarnessCommands",
     "LLMCommands",
     "PersonaCommands",
     "PluginCommands",

@@ -92,6 +92,16 @@ const MainRoutes = {
       component: () => import('@/views/TracePage.vue')
     },
     {
+      name: 'HallCollaboration',
+      path: '/hall',
+      component: () => import('@/views/HallPage.vue')
+    },
+    {
+      name: 'ContextMonitor',
+      path: '/context-monitor',
+      component: () => import('@/views/ContextMonitorPage.vue')
+    },
+    {
       name: 'NativeKnowledgeBase',
       path: '/knowledge-base',
       component: () => import('@/views/knowledge-base/index.vue'),

@@ -1,0 +1,34 @@
+# Hermes Webhook 配置 - AstrBot 桥接
+# 将此配置添加到 hermes-config/config.yaml
+
+gateway:
+  platforms:
+    webhook:
+      enabled: true
+      host: "0.0.0.0"
+      port: 8644
+      
+      # HMAC 密钥（用于验证 AstrBot 请求）
+      secret: "astrbot_hermes_bridge_secret_c73fd328c383365f"
+      
+      # 配置路由：接收 AstrBot 转发的 QQ 消息
+      routes:
+        astrbot_qq:
+          secret: "astrbot_hermes_bridge_secret_c73fd328c383365f"
+          prompt: |
+            你正在通过 QQ 与用户对话。
+            
+            用户信息：
+            - 用户 ID: {{user_id}}
+            - 昵称：{{sender_nickname}}
+            - 消息类型：{{message_type}}
+            
+            用户消息：
+            {{message}}
+            
+            请以友好、简洁的方式回复用户。
+          
+          # 响应返回方式
+          deliver: "webhook_response"
+          deliver_extra:
+            response_url: "http://localhost:8645/hermes_response"

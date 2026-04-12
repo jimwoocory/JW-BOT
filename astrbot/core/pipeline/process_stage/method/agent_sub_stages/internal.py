@@ -86,6 +86,14 @@ class InternalAgentSubStage(Stage):
             "context_limit_reached_strategy",
             "truncate_by_turns",
         )
+        self.lossless_context_enabled: bool = settings.get(
+            "lossless_context_enabled",
+            False,
+        )
+        self.lossless_compact_message_threshold: int = settings.get(
+            "lossless_compact_message_threshold",
+            200,
+        )
         self.llm_compress_instruction: str = settings.get(
             "llm_compress_instruction",
             "",
@@ -141,6 +149,8 @@ class InternalAgentSubStage(Stage):
             subagent_orchestrator=conf.get("subagent_orchestrator", {}),
             timezone=self.ctx.plugin_manager.context.get_config().get("timezone"),
             max_quoted_fallback_images=settings.get("max_quoted_fallback_images", 20),
+            lossless_context_enabled=self.lossless_context_enabled,
+            lossless_compact_message_threshold=self.lossless_compact_message_threshold,
         )
 
     async def process(
@@ -472,6 +482,18 @@ class InternalAgentSubStage(Stage):
             req.conversation.cid,
             history=message_to_save,
             token_usage=token_usage,
+        )
+        await self.ctx.plugin_manager.context.append_harness_trace(
+            event,
+            "assistant_response_saved",
+            {
+                "conversation_id": req.conversation.cid,
+                "response_preview": (llm_response.completion_text or "")[:200],
+                "token_usage": token_usage,
+                "message_count": len(message_to_save),
+                "tool_calls_result": bool(req.tool_calls_result),
+                "user_aborted": user_aborted,
+            },
         )
 
 

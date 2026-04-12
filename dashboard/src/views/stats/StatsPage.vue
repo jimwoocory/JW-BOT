@@ -183,7 +183,7 @@
           <div class="card-head compact">
             <div>
               <div class="section-title">{{ t('sessionRanking.title', { range: rangeLabel }) }}</div>
-              <div class="section-subtitle">{{ t('sessionRanking.subtitle') }}</div>
+              <div class="section-subtitle">{{ t('sessionRanking.subtitle', { range: rangeLabel }) }}</div>
             </div>
           </div>
           <div v-if="rangeUmoRanking.length" class="provider-list">
@@ -198,6 +198,13 @@
           </div>
           <div v-else class="empty-state">{{ t('empty.sessionCalls', { range: rangeLabel }) }}</div>
         </section>
+
+        <!-- Context Pressure Monitoring Card -->
+        <v-row class="mt-6">
+          <v-col cols="12">
+            <ContextPressureCard :auto-refresh="true" :refresh-interval="60000" />
+          </v-col>
+        </v-row>
       </template>
     </v-container>
   </div>
@@ -209,6 +216,7 @@ import axios from 'axios'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useTheme } from 'vuetify'
 import { useI18n, useModuleI18n } from '@/i18n/composables'
+import ContextPressureCard from '@/components/ContextPressureCard.vue'
 
 type TokenRange = 1 | 3 | 7
 type ChartSeries = Array<{

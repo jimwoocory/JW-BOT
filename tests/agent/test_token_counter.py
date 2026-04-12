@@ -27,14 +27,25 @@ class TestTextCounting:
         assert tokens > 0
 
     def test_chinese(self):
-        # 中文字符权重更高
+        # 中文字符在上下文预算里应明显更高，避免延迟压缩。
         en = counter.count_tokens([_msg("user", "abc")])
         zh = counter.count_tokens([_msg("user", "你好啊")])
         assert zh > en
+        assert zh >= 4
 
     def test_text_part(self):
         msg = _msg("user", [TextPart(text="hello")])
         assert counter.count_tokens([msg]) > 0
+
+    def test_mixed_cjk_counts_higher_than_ascii_sentence(self):
+        ascii_tokens = counter.count_tokens([_msg("user", "project architecture is good")])
+        mixed_tokens = counter.count_tokens([_msg("user", "这个 project architecture 很好")])
+        assert mixed_tokens > ascii_tokens
+
+    def test_emoji_weight_is_higher_than_ascii(self):
+        ascii_tokens = counter.count_tokens([_msg("user", "ok")])
+        emoji_tokens = counter.count_tokens([_msg("user", "🙂🙂")])
+        assert emoji_tokens > ascii_tokens
 
 
 class TestMultimodalCounting:
@@ -101,3 +112,14 @@ class TestToolCalls:
         # 文本 + tool call JSON 都应被计算
         text_only = counter.count_tokens([_msg("assistant", "calling tool")])
         assert tokens > text_only
+
+
+class TestDetailedEstimation:
+    def test_exact_cjk_weight(self):
+        assert counter._estimate_tokens("这个项目的架构设计非常优秀") == 20
+
+    def test_exact_ascii_weight(self):
+        assert counter._estimate_tokens("abcd") == 1
+
+    def test_exact_emoji_weight(self):
+        assert counter._estimate_tokens("🙂") == 2

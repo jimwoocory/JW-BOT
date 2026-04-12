@@ -26,7 +26,11 @@ from astrbot.core.utils.io import get_local_ip_addresses
 from .routes import *
 from .routes.api_key import ALL_OPEN_API_SCOPES
 from .routes.backup import BackupRoute
+from .routes.context_monitor import ContextMonitorRoute
+from .routes.hall_collaboration import HallCollaborationRoute
+from .routes.harness_debug import HarnessDebugRoute
 from .routes.live_chat import LiveChatRoute
+from .routes.lossless_debug import LosslessDebugRoute
 from .routes.platform import PlatformRoute
 from .routes.route import Response, RouteContext
 from .routes.session_management import SessionManagementRoute
@@ -139,11 +143,25 @@ class AstrBotDashboard:
         self.platform_route = PlatformRoute(self.context, core_lifecycle)
         self.backup_route = BackupRoute(self.context, db, core_lifecycle)
         self.live_chat_route = LiveChatRoute(self.context, db, core_lifecycle)
+        self.lossless_debug_route = LosslessDebugRoute(self.context, core_lifecycle)
+        self.harness_debug_route = HarnessDebugRoute(self.context, core_lifecycle)
+        self.hall_collaboration_route = HallCollaborationRoute(
+            self.context, core_lifecycle
+        )
+        self.context_monitor_route = ContextMonitorRoute(
+            self.context, db, core_lifecycle
+        )
 
         self.app.add_url_rule(
             "/api/plug/<path:subpath>",
             view_func=self.srv_plug_route,
             methods=["GET", "POST"],
+        )
+
+        self.app.add_url_rule(
+            "/<path:path>",
+            view_func=self.spa_catch_all,
+            methods=["GET"],
         )
 
         self.shutdown_event = shutdown_event
@@ -158,6 +176,17 @@ class AstrBotDashboard:
             if route == f"/{subpath}" and request.method in methods:
                 return await view_handler(*args, **kwargs)
         return jsonify(Response().error("未找到该路由").__dict__)
+
+    async def spa_catch_all(self, path):
+        """SPA catch-all route: serve index.html for all non-API/non-static requests to support Vue Router."""
+        # path 不包含前导斜杠，直接判断
+        if path.startswith("api/") or path.startswith("assets/"):
+            return await self.app.send_static_file(path)
+
+        try:
+            return await self.app.send_static_file("index.html")
+        except FileNotFoundError:
+            return ("Not found", 404, {"Content-Type": "text/html"})
 
     async def auth_middleware(self):
         if not request.path.startswith("/api"):

@@ -22,6 +22,8 @@
   "sessionManagement": "Custom Rules",
   "console": "Console",
   "trace": "Trace",
+  "hallCollaboration": "Collaboration Hall",
+  "contextMonitor": "Context Monitor",
   "alkaid": "Alkaid Lab",
   "knowledgeBase": "Knowledge Base",
   "about": "About",

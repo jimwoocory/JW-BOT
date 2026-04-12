@@ -1,0 +1,4 @@
+name: openclaw_file_ingest
+desc: OpenClaw QQ文件接收与智库入库
+author: OpenClaw Team
+version: 1.0.0

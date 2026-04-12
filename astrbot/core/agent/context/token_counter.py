@@ -1,4 +1,6 @@
 import json
+import math
+import unicodedata
 from typing import Protocol, runtime_checkable
 
 from ..message import AudioURLPart, ImageURLPart, Message, TextPart, ThinkPart
@@ -76,7 +78,63 @@ class EstimateTokenCounter:
 
         return total
 
+    ASCII_TOKEN_WEIGHT = 0.25
+    CJK_TOKEN_WEIGHT = 1.5
+    EMOJI_TOKEN_WEIGHT = 2.0
+    NON_ASCII_TOKEN_WEIGHT = 0.5
+    PUNCT_TOKEN_WEIGHT = 0.2
+    WHITESPACE_TOKEN_WEIGHT = 0.05
+
     def _estimate_tokens(self, text: str) -> int:
-        chinese_count = len([c for c in text if "\u4e00" <= c <= "\u9fff"])
-        other_count = len(text) - chinese_count
-        return int(chinese_count * 0.6 + other_count * 0.3)
+        if not text:
+            return 0
+
+        total = 0.0
+        for char in text:
+            total += self._char_weight(char)
+
+        return max(1, math.ceil(total))
+
+    def _char_weight(self, char: str) -> float:
+        if char.isspace():
+            return self.WHITESPACE_TOKEN_WEIGHT
+
+        if self._is_cjk(char):
+            return self.CJK_TOKEN_WEIGHT
+
+        if self._is_emoji_like(char):
+            return self.EMOJI_TOKEN_WEIGHT
+
+        if ord(char) < 128:
+            if unicodedata.category(char).startswith("P"):
+                return self.PUNCT_TOKEN_WEIGHT
+            return self.ASCII_TOKEN_WEIGHT
+
+        if unicodedata.category(char).startswith("P"):
+            return self.PUNCT_TOKEN_WEIGHT
+
+        return self.NON_ASCII_TOKEN_WEIGHT
+
+    def _is_cjk(self, char: str) -> bool:
+        code = ord(char)
+        return any(
+            start <= code <= end
+            for start, end in (
+                (0x3400, 0x4DBF),   # CJK Unified Ideographs Extension A
+                (0x4E00, 0x9FFF),   # CJK Unified Ideographs
+                (0x3040, 0x309F),   # Hiragana
+                (0x30A0, 0x30FF),   # Katakana
+                (0x31F0, 0x31FF),   # Katakana Phonetic Extensions
+                (0xAC00, 0xD7AF),   # Hangul Syllables
+                (0x1100, 0x11FF),   # Hangul Jamo
+                (0x3130, 0x318F),   # Hangul Compatibility Jamo
+            )
+        )
+
+    def _is_emoji_like(self, char: str) -> bool:
+        code = ord(char)
+        return (
+            code > 0xFFFF
+            or 0x2600 <= code <= 0x27BF
+            or unicodedata.category(char) == "So"
+        )

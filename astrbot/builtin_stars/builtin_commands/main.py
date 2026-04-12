@@ -6,6 +6,7 @@ from .commands import (
     AlterCmdCommands,
     ConversationCommands,
     HelpCommand,
+    HarnessCommands,
     LLMCommands,
     PersonaCommands,
     PluginCommands,
@@ -22,6 +23,7 @@ class Main(star.Star):
         self.context = context
 
         self.help_c = HelpCommand(self.context)
+        self.harness_c = HarnessCommands(self.context)
         self.llm_c = LLMCommands(self.context)
         self.plugin_c = PluginCommands(self.context)
         self.admin_c = AdminCommands(self.context)
@@ -38,6 +40,95 @@ class Main(star.Star):
     async def help(self, event: AstrMessageEvent) -> None:
         """查看帮助"""
         await self.help_c.help(event)
+
+    @filter.command_group("task")
+    def task(self) -> None:
+        """Harness 任务管理"""
+
+    @task.command("new")
+    async def task_new(self, event: AstrMessageEvent, title: str = "") -> None:
+        """在当前会话创建 Harness 任务"""
+        await self.harness_c.task_new(event, title)
+
+    @task.command("intake")
+    async def task_intake(
+        self,
+        event: AstrMessageEvent,
+        workflow_kind: str = "",
+        brief: str = "",
+    ) -> None:
+        """按公司工作流模板创建 Harness 任务"""
+        await self.harness_c.task_intake(event, workflow_kind, brief)
+
+    @task.command("ls")
+    async def task_ls(self, event: AstrMessageEvent) -> None:
+        """查看当前会话的 Harness 任务"""
+        await self.harness_c.task_ls(event)
+
+    @task.command("show")
+    async def task_show(self, event: AstrMessageEvent, task_id: str = "") -> None:
+        """查看 Harness 任务详情"""
+        await self.harness_c.task_show(event, task_id)
+
+    @task.command("start")
+    async def task_start(
+        self,
+        event: AstrMessageEvent,
+        task_id: str = "",
+        note: str = "",
+    ) -> None:
+        """开始执行 Harness 任务"""
+        await self.harness_c.task_start(event, task_id, note)
+
+    @task.command("review")
+    async def task_review(
+        self,
+        event: AstrMessageEvent,
+        task_id: str = "",
+        reviewer_note: str = "",
+    ) -> None:
+        """将 Harness 任务标记为待审查"""
+        await self.harness_c.task_review(event, task_id, reviewer_note)
+
+    @task.command("done")
+    async def task_done(
+        self,
+        event: AstrMessageEvent,
+        task_id: str = "",
+        summary: str = "",
+    ) -> None:
+        """将 Harness 任务标记为已完成"""
+        await self.harness_c.task_done(event, task_id, summary)
+
+    @task.command("fail")
+    async def task_fail(
+        self,
+        event: AstrMessageEvent,
+        task_id: str = "",
+        reason: str = "",
+    ) -> None:
+        """将 Harness 任务标记为失败"""
+        await self.harness_c.task_fail(event, task_id, reason)
+
+    @task.command("approve")
+    async def task_approve(
+        self,
+        event: AstrMessageEvent,
+        task_id: str = "",
+        note: str = "",
+    ) -> None:
+        """审批通过 Harness 任务"""
+        await self.harness_c.task_approve(event, task_id, note)
+
+    @task.command("reject")
+    async def task_reject(
+        self,
+        event: AstrMessageEvent,
+        task_id: str = "",
+        note: str = "",
+    ) -> None:
+        """驳回 Harness 任务"""
+        await self.harness_c.task_reject(event, task_id, note)
 
     @filter.permission_type(filter.PermissionType.ADMIN)
     @filter.command("llm")

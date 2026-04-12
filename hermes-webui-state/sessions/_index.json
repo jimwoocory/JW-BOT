@@ -1,0 +1,19 @@
+[
+  {
+    "session_id": "1b10b3f6073d",
+    "title": "你好",
+    "workspace": "/Users/dianchi/JW-Bot/hermes-webui-state/workspace",
+    "model": "MiniMax-M2.7-highspeed",
+    "message_count": 8,
+    "created_at": 1776013259.393616,
+    "updated_at": 1776013313.6462772,
+    "pinned": false,
+    "archived": false,
+    "project_id": null,
+    "profile": "default",
+    "input_tokens": 47042,
+    "output_tokens": 409,
+    "estimated_cost": null,
+    "personality": null
+  }
+]

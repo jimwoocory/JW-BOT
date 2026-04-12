@@ -5,22 +5,32 @@
 """
 
 import json
+import os
 from collections.abc import Awaitable, Callable
 
-from astrbot.core import sp
+from astrbot.core import logger, sp
+from astrbot.core.agent.context.lossless_store import LosslessContextStore
 from astrbot.core.agent.message import AssistantMessageSegment, UserMessageSegment
 from astrbot.core.db import BaseDatabase
 from astrbot.core.db.po import Conversation, ConversationV2
 from astrbot.core.utils.datetime_utils import to_utc_timestamp
+from astrbot.core.utils.astrbot_path import get_astrbot_data_path
 
 
 class ConversationManager:
     """负责管理会话与 LLM 的对话，某个会话当前正在用哪个对话。"""
 
-    def __init__(self, db_helper: BaseDatabase) -> None:
+    def __init__(
+        self,
+        db_helper: BaseDatabase,
+        lossless_store: LosslessContextStore | None = None,
+    ) -> None:
         self.session_conversations: dict[str, str] = {}
         self.db = db_helper
         self.save_interval = 60  # 每 60 秒保存一次
+        self.lossless_store = lossless_store or LosslessContextStore(
+            os.path.join(get_astrbot_data_path(), "lossless_context.db"),
+        )
 
         # 会话删除回调函数列表（用于级联清理，如知识库配置）
         self._on_session_deleted_callbacks: list[Callable[[str], Awaitable[None]]] = []
@@ -75,6 +85,27 @@ class ConversationManager:
             token_usage=conv_v2.token_usage,
         )
 
+    async def _mirror_conversation_history(
+        self,
+        conversation_id: str,
+        history: list[dict] | None,
+    ) -> None:
+        """Mirror conversation history into the lossless sidecar store.
+
+        This path must never break normal AstrBot conversation behavior.
+        """
+        if not history:
+            return
+
+        try:
+            await self.lossless_store.ingest_messages(conversation_id, history)
+        except Exception as e:
+            logger.warning(
+                "Lossless sidecar ingest failed for conversation %s: %s",
+                conversation_id,
+                e,
+            )
+
     async def new_conversation(
         self,
         unified_msg_origin: str,
@@ -107,6 +138,7 @@ class ConversationManager:
         )
         self.session_conversations[unified_msg_origin] = conv.conversation_id
         await sp.session_put(unified_msg_origin, "sel_conv_id", conv.conversation_id)
+        await self._mirror_conversation_history(conv.conversation_id, conv.content)
         return conv.conversation_id
 
     async def switch_conversation(
@@ -198,6 +230,7 @@ class ConversationManager:
             conv = await self.db.get_conversation_by_id(cid=conversation_id)
         conv_res = None
         if conv:
+            await self._mirror_conversation_history(conv.conversation_id, conv.content)
             conv_res = self._convert_conv_from_v2_to_v1(conv)
         return conv_res
 
@@ -286,6 +319,7 @@ class ConversationManager:
                 content=history,
                 token_usage=token_usage,
             )
+            await self._mirror_conversation_history(conversation_id, history)
 
     async def update_conversation_title(
         self,
@@ -366,6 +400,7 @@ class ConversationManager:
             cid=cid,
             content=history,
         )
+        await self._mirror_conversation_history(cid, history)
 
     async def get_human_readable_context(
         self,

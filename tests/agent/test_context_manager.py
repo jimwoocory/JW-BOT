@@ -411,9 +411,9 @@ class TestContextManager:
         manager = ContextManager(config)
 
         # Need enough tokens to exceed threshold: 50 * 0.82 = 41 tokens
-        # 150 chars * 0.3 = 45 tokens > 41
+        # 200 ASCII chars * 0.25 = 50 tokens > 41
         messages = [
-            Message(role="user", content=[TextPart(text="x" * 150)]),
+            Message(role="user", content=[TextPart(text="x" * 200)]),
         ]
 
         # Should trigger compression due to token count

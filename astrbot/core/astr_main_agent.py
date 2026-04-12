@@ -11,7 +11,10 @@ from collections.abc import Coroutine
 from dataclasses import dataclass, field
 
 from astrbot.core import logger
+from astrbot.core.agent.context.compressor import TruncateByTurnsCompressor
 from astrbot.core.agent.handoff import HandoffTool
+from astrbot.core.agent.context.lossless_assembler import LosslessAssembler
+from astrbot.core.agent.context.lossless_compressor import LosslessSummaryCompressor
 from astrbot.core.agent.mcp_client import MCPTool
 from astrbot.core.agent.message import TextPart
 from astrbot.core.agent.tool import ToolSet
@@ -150,6 +153,14 @@ class MainAgentBuildConfig:
     timezone: str | None = None
     max_quoted_fallback_images: int = 20
     """Maximum number of images injected from quoted-message fallback extraction."""
+    lossless_context_enabled: bool = False
+    """Enable lossless context compaction (Phase 1C/1D).
+    When True, the LosslessSummaryCompressor is used and summary_leaf nodes are
+    persisted to the sidecar store.  The environment variable
+    ASTRBOT_EXPERIMENTAL_LOSSLESS_CONTEXT=1 takes precedence over this field."""
+    lossless_compact_message_threshold: int = 200
+    """Compact lossless context when the raw non-system message count reaches
+    this threshold, even if the model context window is still very large."""
 
 
 @dataclass(slots=True)
@@ -182,6 +193,41 @@ def _select_provider(
     except ValueError as exc:
         logger.error("Error occurred while selecting provider: %s", exc)
         return None
+
+
+def _lossless_enabled(config: MainAgentBuildConfig) -> bool:
+    """Return True if lossless context is enabled via env var or config flag."""
+    env_val = os.environ.get("ASTRBOT_EXPERIMENTAL_LOSSLESS_CONTEXT", "").lower()
+    if env_val in ("1", "true", "yes", "on"):
+        return True
+    return config.lossless_context_enabled
+
+
+def _build_custom_compressor(
+    config: MainAgentBuildConfig,
+    plugin_context: Context,
+    provider: Provider | None = None,
+    conversation_id: str | None = None,
+) -> LosslessSummaryCompressor | None:
+    if not _lossless_enabled(config):
+        return None
+
+    store = plugin_context.conversation_manager.lossless_store
+    assembler = LosslessAssembler(store)
+    compress_provider = _get_compress_provider(config, plugin_context) or provider
+
+    return LosslessSummaryCompressor(
+        provider=compress_provider,
+        keep_recent=config.llm_compress_keep_recent,
+        instruction_text=config.llm_compress_instruction or None,
+        message_threshold=config.lossless_compact_message_threshold,
+        fallback_compressor=TruncateByTurnsCompressor(
+            truncate_turns=config.dequeue_context_length,
+        ),
+        store=store,
+        conversation_id=conversation_id,
+        assembler=assembler,
+    )
 
 
 async def _get_session_conv(
@@ -1414,6 +1460,12 @@ async def build_main_agent(
         llm_compress_keep_recent=config.llm_compress_keep_recent,
         llm_compress_provider=_get_compress_provider(config, plugin_context),
         truncate_turns=config.dequeue_context_length,
+        custom_compressor=_build_custom_compressor(
+            config,
+            plugin_context,
+            provider=provider,
+            conversation_id=req.conversation.cid if req.conversation else None,
+        ),
         enforce_max_turns=config.max_context_length,
         tool_schema_mode=config.tool_schema_mode,
         fallback_providers=_get_fallback_chat_providers(

@@ -1,0 +1,30 @@
+{
+  "agent:main:webhook:webhook:webhook:astrbot_qq:1775936108902:webhook:astrbot_qq": {
+    "session_key": "agent:main:webhook:webhook:webhook:astrbot_qq:1775936108902:webhook:astrbot_qq",
+    "session_id": "20260412_033508_b5cf7112",
+    "created_at": "2026-04-12T03:35:08.956617",
+    "updated_at": "2026-04-12T03:35:19.791879",
+    "display_name": "webhook/astrbot_qq",
+    "platform": "webhook",
+    "chat_type": "webhook",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_read_tokens": 0,
+    "cache_write_tokens": 0,
+    "total_tokens": 0,
+    "last_prompt_tokens": 11622,
+    "estimated_cost_usd": 0.0,
+    "cost_status": "unknown",
+    "memory_flushed": true,
+    "origin": {
+      "platform": "webhook",
+      "chat_id": "webhook:astrbot_qq:1775936108902",
+      "chat_name": "webhook/astrbot_qq",
+      "chat_type": "webhook",
+      "user_id": "webhook:astrbot_qq",
+      "user_name": "astrbot_qq",
+      "thread_id": null,
+      "chat_topic": null
+    }
+  }
+}

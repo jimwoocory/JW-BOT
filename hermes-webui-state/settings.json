@@ -1,0 +1,27 @@
+{
+  "default_model": "MiniMax-M2.7-highspeed",
+  "default_workspace": "/Users/dianchi/JW-Bot/hermes-webui-state/workspace",
+  "onboarding_completed": true,
+  "send_key": "enter",
+  "show_token_usage": false,
+  "show_cli_sessions": false,
+  "sync_to_insights": false,
+  "check_for_updates": true,
+  "theme": "light",
+  "language": "zh",
+  "bot_name": "Hermes",
+  "sound_enabled": false,
+  "notifications_enabled": false,
+  "password_hash": null,
+  "provider": {
+    "mode": "custom",
+    "base_url": "https://minimax.a7m.com.cn/v1",
+    "api_key": "sk-b3PnKpixs6UOCYQxDNbLA3uOYqTA6WRRPo7EbcfTOrlVJnPr"
+  },
+  "model": {
+    "default": "MiniMax-M2.7-highspeed"
+  },
+  "workspace": {
+    "path": "/Users/dianchi/JW-Bot"
+  }
+}

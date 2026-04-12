@@ -8,7 +8,11 @@ from .config import ConfigRoute
 from .conversation import ConversationRoute
 from .cron import CronRoute
 from .file import FileRoute
+from .context_monitor import ContextMonitorRoute
+from .hall_collaboration import HallCollaborationRoute
+from .harness_debug import HarnessDebugRoute
 from .knowledge_base import KnowledgeBaseRoute
+from .lossless_debug import LosslessDebugRoute
 from .log import LogRoute
 from .open_api import OpenApiRoute
 from .persona import PersonaRoute
@@ -31,9 +35,13 @@ __all__ = [
     "CommandRoute",
     "ConfigRoute",
     "ConversationRoute",
+    "ContextMonitorRoute",
     "CronRoute",
     "FileRoute",
+    "HallCollaborationRoute",
+    "HarnessDebugRoute",
     "KnowledgeBaseRoute",
+    "LosslessDebugRoute",
     "LogRoute",
     "OpenApiRoute",
     "PersonaRoute",

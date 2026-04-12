@@ -23,6 +23,13 @@ from astrbot.core.config.default import VERSION
 from astrbot.core.conversation_mgr import ConversationManager
 from astrbot.core.cron import CronJobManager
 from astrbot.core.db import BaseDatabase
+from astrbot.core.harness import (
+    HarnessCognitionProvider,
+    HarnessEngine,
+    HarnessMemoryPromoter,
+    HarnessMemoryStore,
+    HarnessTaskStore,
+)
 from astrbot.core.knowledge_base.kb_mgr import KnowledgeBaseManager
 from astrbot.core.persona_mgr import PersonaManager
 from astrbot.core.pipeline.scheduler import PipelineContext, PipelineScheduler
@@ -35,6 +42,7 @@ from astrbot.core.star.star_manager import PluginManager
 from astrbot.core.subagent_orchestrator import SubAgentOrchestrator
 from astrbot.core.umop_config_router import UmopConfigRouter
 from astrbot.core.updator import AstrBotUpdator
+from astrbot.core.utils.astrbot_path import get_astrbot_data_path
 from astrbot.core.utils.llm_metadata import update_llm_metadata
 from astrbot.core.utils.migra_helper import migra
 from astrbot.core.utils.temp_dir_cleaner import TempDirCleaner
@@ -59,6 +67,9 @@ class AstrBotCoreLifecycle:
         self.subagent_orchestrator: SubAgentOrchestrator | None = None
         self.cron_manager: CronJobManager | None = None
         self.temp_dir_cleaner: TempDirCleaner | None = None
+        self.harness_store: HarnessTaskStore | None = None
+        self.harness_engine: HarnessEngine | None = None
+        self.harness_memory_store: HarnessMemoryStore | None = None
 
         # 设置代理
         proxy_config = self.astrbot_config.get("http_proxy", "")
@@ -177,6 +188,31 @@ class AstrBotCoreLifecycle:
         # 初始化 CronJob 管理器
         self.cron_manager = CronJobManager(self.db)
 
+        # 初始化 Harness sidecar
+        self.harness_store = HarnessTaskStore(
+            os.path.join(get_astrbot_data_path(), "harness.db"),
+        )
+        await self.harness_store.initialize()
+        self.harness_memory_store = HarnessMemoryStore(
+            os.path.join(get_astrbot_data_path(), "harness_memory.db"),
+        )
+        await self.harness_memory_store.initialize()
+        memory_promoter = HarnessMemoryPromoter(self.harness_memory_store)
+        harness_cognition = HarnessCognitionProvider(
+            persona_manager=self.persona_mgr,
+            kb_manager=self.kb_manager,
+            harness_store=self.harness_store,
+            memory_store=self.harness_memory_store,
+        )
+        self.harness_engine = HarnessEngine(
+            self.harness_store,
+            session_snapshot_getter=(
+                self.conversation_manager.lossless_store.get_snapshot
+            ),
+            cognitive_snapshot_getter=harness_cognition.build_snapshot,
+            memory_promoter=memory_promoter,
+        )
+
         # Dynamic subagents (handoff tools) from config.
         await self._init_or_reload_subagent_orchestrator()
 
@@ -194,6 +230,8 @@ class AstrBotCoreLifecycle:
             self.kb_manager,
             self.cron_manager,
             self.subagent_orchestrator,
+            self.harness_engine,
+            self.harness_store,
         )
 
         # 初始化插件管理器

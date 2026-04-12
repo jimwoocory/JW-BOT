@@ -562,6 +562,21 @@ onMounted(async () => {
 
   <v-spacer />
 
+    <!-- OpenClaw Control Center 快捷入口 -->
+    <v-btn
+      href="http://localhost:4312/"
+      target="_blank"
+      rel="noopener noreferrer"
+      size="small"
+      variant="tonal"
+      color="primary"
+      class="mr-3 hidden-xs"
+      rounded="sm"
+    >
+      <v-icon start>mdi-monitor-dashboard</v-icon>
+      openclaw-control-center
+    </v-btn>
+
     <!-- 版本提示信息 - 在手机上隐藏 -->
     <div class="mr-4 hidden-xs">
       <small v-if="hasNewVersion">

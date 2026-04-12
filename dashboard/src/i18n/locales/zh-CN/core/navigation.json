@@ -22,6 +22,8 @@
   "sessionManagement": "自定义规则",
   "console": "平台日志",
   "trace": "追踪",
+  "hallCollaboration": "协作中心",
+  "contextMonitor": "Context 监控",
   "alkaid": "Alkaid",
   "knowledgeBase": "知识库",
   "about": "关于",

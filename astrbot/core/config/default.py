@@ -129,6 +129,8 @@ DEFAULT_CONFIG = {
         ),
         "llm_compress_keep_recent": 6,
         "llm_compress_provider_id": "",
+        "lossless_context_enabled": False,
+        "lossless_compact_message_threshold": 200,
         "max_context_length": -1,
         "dequeue_context_length": 1,
         "streaming_response": False,
@@ -3439,9 +3441,25 @@ CONFIG_METADATA_3 = {
                         "description": "用于上下文压缩的模型提供商 ID",
                         "type": "string",
                         "_special": "select_provider",
-                        "hint": "留空时将降级为“按对话轮数截断”的策略。",
+                        "hint": "留空时将降级为按对话轮数截断的策略。",
                         "condition": {
                             "provider_settings.context_limit_reached_strategy": "llm_compress",
+                            "provider_settings.agent_runner_type": "local",
+                        },
+                    },
+                    "provider_settings.lossless_context_enabled": {
+                        "description": "启用无损上下文压缩（实验性）",
+                        "type": "bool",
+                        "hint": "开启后压缩结果会持久化到 sidecar 数据库，支持历史召回。也可通过环境变量 ASTRBOT_EXPERIMENTAL_LOSSLESS_CONTEXT=1 启用。",
+                        "condition": {
+                            "provider_settings.agent_runner_type": "local",
+                        },
+                    },
+                    "provider_settings.lossless_compact_message_threshold": {
+                        "description": "无损压缩消息阈值",
+                        "type": "int",
+                        "hint": "当非 system 消息数达到这个阈值时，即使模型上下文窗口很大，也会触发一次 lossless compaction。设为 0 表示仅按 token 压力触发。",
+                        "condition": {
                             "provider_settings.agent_runner_type": "local",
                         },
                     },

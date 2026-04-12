@@ -1,4 +1,4 @@
-/* Auto-generated MDI subset – 256 icons */
+/* Auto-generated MDI subset – 275 icons */
 /* Do not edit manually. Run: pnpm run subset-icons */
 
 @font-face {
@@ -32,8 +32,20 @@
   content: "\F0FFB";
 }
 
+.mdi-account-group::before {
+  content: "\F0849";
+}
+
+.mdi-account-group-outline::before {
+  content: "\F0B58";
+}
+
 .mdi-account-heart::before {
   content: "\F0899";
+}
+
+.mdi-account-multiple::before {
+  content: "\F000E";
 }
 
 .mdi-account-voice::before {
@@ -50,6 +62,10 @@
 
 .mdi-alert-circle-outline::before {
   content: "\F05D6";
+}
+
+.mdi-alert-octagon::before {
+  content: "\F0029";
 }
 
 .mdi-alert-outline::before {
@@ -100,6 +116,10 @@
   content: "\F006F";
 }
 
+.mdi-bell-ring::before {
+  content: "\F009E";
+}
+
 .mdi-book-open-page-variant::before {
   content: "\F05DA";
 }
@@ -144,6 +164,10 @@
   content: "\F00F3";
 }
 
+.mdi-chart-pie::before {
+  content: "\F012B";
+}
+
 .mdi-chat::before {
   content: "\F0B79";
 }
@@ -170,6 +194,10 @@
 
 .mdi-check-circle-outline::before {
   content: "\F05E1";
+}
+
+.mdi-check-decagram::before {
+  content: "\F0791";
 }
 
 .mdi-checkbox-blank-outline::before {
@@ -218,6 +246,18 @@
 
 .mdi-circle-small::before {
   content: "\F09DF";
+}
+
+.mdi-clipboard-check::before {
+  content: "\F014E";
+}
+
+.mdi-clipboard-list::before {
+  content: "\F10D4";
+}
+
+.mdi-clipboard-text::before {
+  content: "\F014D";
 }
 
 .mdi-clock-outline::before {
@@ -294,6 +334,10 @@
 
 .mdi-content-save-outline::before {
   content: "\F0818";
+}
+
+.mdi-counter::before {
+  content: "\F0199";
 }
 
 .mdi-creation::before {
@@ -500,6 +544,14 @@
   content: "\F0279";
 }
 
+.mdi-forum::before {
+  content: "\F028C";
+}
+
+.mdi-forum-outline::before {
+  content: "\F0822";
+}
+
 .mdi-frequently-asked-questions::before {
   content: "\F0EB4";
 }
@@ -514,6 +566,10 @@
 
 .mdi-function-variant::before {
   content: "\F0871";
+}
+
+.mdi-gauge::before {
+  content: "\F029A";
 }
 
 .mdi-github::before {
@@ -534,6 +590,10 @@
 
 .mdi-heart::before {
   content: "\F02D1";
+}
+
+.mdi-heart-pulse::before {
+  content: "\F05F6";
 }
 
 .mdi-help-circle::before {
@@ -594,6 +654,10 @@
 
 .mdi-layers-outline::before {
   content: "\F09FE";
+}
+
+.mdi-lightbulb-on::before {
+  content: "\F06E8";
 }
 
 .mdi-lightbulb-outline::before {
@@ -682,6 +746,10 @@
 
 .mdi-minus-box::before {
   content: "\F0375";
+}
+
+.mdi-monitor-dashboard::before {
+  content: "\F0A07";
 }
 
 .mdi-music-note-outline::before {
@@ -930,6 +998,14 @@
 
 .mdi-subdirectory-arrow-right::before {
   content: "\F060D";
+}
+
+.mdi-swap-horizontal::before {
+  content: "\F04E1";
+}
+
+.mdi-table-large::before {
+  content: "\F04F1";
 }
 
 .mdi-text::before {

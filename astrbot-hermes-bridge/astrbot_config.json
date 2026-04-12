@@ -1,0 +1,9 @@
+{
+  "hermes_bridge": {
+    "webhook_url": "http://localhost:8644/webhooks/astrbot_qq",
+    "secret": "astrbot_hermes_bridge_secret_c73fd328c383365f",
+    "response_port": 8645,
+    "enable_forwarding": true,
+    "message_format": "text"
+  }
+}

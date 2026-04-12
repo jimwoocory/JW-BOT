@@ -131,6 +131,16 @@ const sidebarItem: menu[] = [
         icon: 'mdi-timeline-text-outline',
         to: '/trace'
       },
+      {
+        title: 'core.navigation.hallCollaboration',
+        icon: 'mdi-account-group',
+        to: '/hall'
+      },
+      {
+        title: 'core.navigation.contextMonitor',
+        icon: 'mdi-gauge',
+        to: '/context-monitor'
+      },
     ]
   }
   // {

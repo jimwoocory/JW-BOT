@@ -935,6 +935,26 @@ class TestPluginToolFix:
 class TestBuildMainAgent:
     """Tests for build_main_agent function."""
 
+    def test_build_custom_compressor_uses_active_provider_for_lossless(
+        self, mock_context, mock_provider
+    ):
+        module = ama
+        mock_context.conversation_manager.lossless_store = MagicMock()
+
+        compressor = module._build_custom_compressor(
+            module.MainAgentBuildConfig(
+                tool_call_timeout=60,
+                lossless_context_enabled=True,
+            ),
+            mock_context,
+            provider=mock_provider,
+            conversation_id="conv-id",
+        )
+
+        assert compressor is not None
+        assert compressor.provider is mock_provider
+        assert compressor.message_threshold == 200
+
     @pytest.mark.asyncio
     async def test_build_main_agent_basic(
         self, mock_event, mock_context, mock_provider

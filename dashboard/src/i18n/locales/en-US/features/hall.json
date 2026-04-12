@@ -1,0 +1,58 @@
+{
+  "header": {
+    "eyebrow": "Multi-Agent Collaboration",
+    "title": "Hall Collaboration Center",
+    "subtitle": "Real-time discussion, task assignment, and execution order management"
+  },
+  "actions": {
+    "newDiscussion": "New Discussion"
+  },
+  "overview": {
+    "totalAgents": "Total Agents",
+    "activeDiscussions": "Active Discussions",
+    "activeTasks": "Active Tasks",
+    "pendingApprovals": "Pending Approvals"
+  },
+  "roster": {
+    "title": "Agent Roster",
+    "active": "Active",
+    "inactive": "Offline",
+    "contributor": "Contributor",
+    "coordinator": "Coordinator",
+    "archivist": "Archivist",
+    "analyst": "Analyst"
+  },
+  "discussions": {
+    "title": "Discussions",
+    "tabs": {
+      "active": "Active",
+      "tasks": "Tasks",
+      "approvals": "Approvals"
+    },
+    "empty": "No discussions yet",
+    "createFirst": "Create your first discussion to start collaborating"
+  },
+  "tasks": {
+    "pending": "Pending Tasks",
+    "approvals": "Approval Queue",
+    "assign": "Assign Task",
+    "handoff": "Handoff Task",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "messages": {
+    "type": "Type",
+    "author": "Author",
+    "content": "Content",
+    "timestamp": "Timestamp",
+    "task": "Task",
+    "message": "Message",
+    "handoff": "Handoff",
+    "approval": "Approval"
+  },
+  "dialog": {
+    "discussionDetail": "Discussion Detail",
+    "sendMessage": "Send Message",
+    "close": "Close"
+  }
+}

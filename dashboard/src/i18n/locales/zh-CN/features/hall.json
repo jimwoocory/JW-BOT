@@ -1,0 +1,58 @@
+{
+  "header": {
+    "eyebrow": "多智能体协作",
+    "title": "Hall 协作中心",
+    "subtitle": "实时讨论、任务分配和执行顺序管理"
+  },
+  "actions": {
+    "newDiscussion": "新建讨论"
+  },
+  "overview": {
+    "totalAgents": "智能体总数",
+    "activeDiscussions": "活跃讨论",
+    "activeTasks": "活跃任务",
+    "pendingApprovals": "待审批"
+  },
+  "roster": {
+    "title": "智能体列表",
+    "active": "活跃",
+    "inactive": "离线",
+    "contributor": "贡献者",
+    "coordinator": "协调者",
+    "archivist": "管理员",
+    "analyst": "分析师"
+  },
+  "discussions": {
+    "title": "讨论",
+    "tabs": {
+      "active": "活跃",
+      "tasks": "任务",
+      "approvals": "审批"
+    },
+    "empty": "暂无讨论",
+    "createFirst": "创建第一个讨论开始协作"
+  },
+  "tasks": {
+    "pending": "待处理任务",
+    "approvals": "待审批任务",
+    "assign": "分配任务",
+    "handoff": "任务移交",
+    "approve": "批准",
+    "reject": "拒绝"
+  },
+  "messages": {
+    "type": "类型",
+    "author": "作者",
+    "content": "内容",
+    "timestamp": "时间戳",
+    "task": "任务",
+    "message": "消息",
+    "handoff": "移交",
+    "approval": "审批"
+  },
+  "dialog": {
+    "discussionDetail": "讨论详情",
+    "sendMessage": "发送消息",
+    "close": "关闭"
+  }
+}

@@ -45,6 +45,49 @@ from astrbot.core.utils.string_utils import normalize_and_dedupe_strings
 
 class FunctionToolExecutor(BaseFunctionToolExecutor[AstrAgentContext]):
     @classmethod
+    def _summarize_tool_args(cls, tool_args: dict[str, T.Any]) -> dict[str, T.Any]:
+        summary: dict[str, T.Any] = {}
+        for key, value in tool_args.items():
+            if isinstance(value, str):
+                summary[key] = value[:160]
+            elif isinstance(value, (int, float, bool)) or value is None:
+                summary[key] = value
+            elif isinstance(value, list):
+                summary[key] = f"list[{len(value)}]"
+            elif isinstance(value, dict):
+                summary[key] = f"dict[{len(value)}]"
+            else:
+                summary[key] = type(value).__name__
+        return summary
+
+    @classmethod
+    def _summarize_tool_result(cls, result: T.Any) -> dict[str, T.Any]:
+        if isinstance(result, mcp.types.CallToolResult):
+            parts = []
+            for content in result.content[:2]:
+                text = getattr(content, "text", None)
+                if isinstance(text, str) and text:
+                    parts.append(text[:160])
+            return {
+                "result_type": "call_tool_result",
+                "content_parts": len(result.content),
+                "preview": " | ".join(parts),
+            }
+        if isinstance(result, str):
+            return {
+                "result_type": "text",
+                "preview": result[:160],
+            }
+        if result is None:
+            return {
+                "result_type": "none",
+            }
+        return {
+            "result_type": type(result).__name__,
+            "preview": str(result)[:160],
+        }
+
+    @classmethod
     def _collect_image_urls_from_args(cls, image_urls_raw: T.Any) -> list[str]:
         if image_urls_raw is None:
             return []
@@ -600,12 +643,25 @@ class FunctionToolExecutor(BaseFunctionToolExecutor[AstrAgentContext]):
         if awaitable is None:
             raise ValueError("Tool must have a valid handler or override 'run' method.")
 
+        tool_arg_summary = cls._summarize_tool_args(tool_args)
+        await run_context.context.context.append_harness_trace(
+            event,
+            "tool_call_started",
+            {
+                "tool_name": tool.name,
+                "method_name": method_name,
+                "args": tool_arg_summary,
+            },
+        )
+
         wrapper = call_local_llm_tool(
             context=run_context,
             handler=awaitable,
             method_name=method_name,
             **tool_args,
         )
+        emitted_count = 0
+        last_result_summary: dict[str, T.Any] | None = None
         while True:
             try:
                 resp = await asyncio.wait_for(
@@ -613,6 +669,8 @@ class FunctionToolExecutor(BaseFunctionToolExecutor[AstrAgentContext]):
                     timeout=tool_call_timeout or run_context.tool_call_timeout,
                 )
                 if resp is not None:
+                    emitted_count += 1
+                    last_result_summary = cls._summarize_tool_result(resp)
                     if isinstance(resp, mcp.types.CallToolResult):
                         yield resp
                     else:
@@ -641,10 +699,38 @@ class FunctionToolExecutor(BaseFunctionToolExecutor[AstrAgentContext]):
                                 )
                     yield None
             except asyncio.TimeoutError:
+                await run_context.context.context.append_harness_trace(
+                    event,
+                    "tool_call_failed",
+                    {
+                        "tool_name": tool.name,
+                        "error": "timeout",
+                        "timeout_seconds": tool_call_timeout or run_context.tool_call_timeout,
+                    },
+                )
                 raise Exception(
                     f"tool {tool.name} execution timeout after {tool_call_timeout or run_context.tool_call_timeout} seconds.",
                 )
+            except Exception as e:
+                await run_context.context.context.append_harness_trace(
+                    event,
+                    "tool_call_failed",
+                    {
+                        "tool_name": tool.name,
+                        "error": str(e)[:300],
+                    },
+                )
+                raise
             except StopAsyncIteration:
+                await run_context.context.context.append_harness_trace(
+                    event,
+                    "tool_call_completed",
+                    {
+                        "tool_name": tool.name,
+                        "emitted_count": emitted_count,
+                        "result": last_result_summary or {"result_type": "empty"},
+                    },
+                )
                 break
 
     @classmethod

@@ -1,0 +1,8 @@
+{
+  "name": "marketing_opencli",
+  "version": "1.0.0",
+  "description": "结合OpenCLI搜索能力和营销工具的专业营销能力",
+  "author": "OpenClaw Team",
+  "homepage": "",
+  "dependencies": {}
+}
