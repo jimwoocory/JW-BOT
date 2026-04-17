@@ -12,12 +12,21 @@ uv.lock
 
 # Logs and temporary files
 botpy.log
+astrbot.log
+astrbot.err.log
+*.log
 logs/
 temp
 cookies.json
 
 # Data files
 data_v2.db
+
+# NAS sync - credentials and auto-generated files
+nas_sync/config.yaml
+nas_sync/state.json
+nas_sync/watcher.log
+nas_sync/mount.log
 data_v3.db
 data
 configs/session
@@ -64,3 +73,12 @@ GenieData/
 .worktrees/
 
 dashboard/bun.lock
+
+# Hermes runtime state
+hermes-config/state.db
+hermes-config/state.db-wal
+hermes-config/state.db-shm
+hermes-config/.skills_prompt_snapshot.json
+hermes-config/gateway_state.json
+hermes-config/sessions/
+hermes-webui-state/sessions/

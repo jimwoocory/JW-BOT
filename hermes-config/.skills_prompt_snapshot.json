@@ -33,6 +33,10 @@
       1775917215760505948,
       7356
     ],
+    "creative/architecture-diagram/SKILL.md": [
+      1776303414401221544,
+      5035
+    ],
     "creative/ascii-art/SKILL.md": [
       1775917215760715405,
       10631
@@ -228,6 +232,10 @@
     "mlops/training/unsloth/SKILL.md": [
       1775917215797439721,
       2332
+    ],
+    "nas/SKILL.md": [
+      1776225440568094478,
+      3379
     ],
     "note-taking/obsidian/SKILL.md": [
       1775917215800732917,
@@ -531,6 +539,19 @@
       "category": "autonomous-ai-agents",
       "frontmatter_name": "opencode",
       "description": "Delegate coding tasks to OpenCode CLI agent for feature i...",
+      "platforms": [],
+      "conditions": {
+        "fallback_for_toolsets": [],
+        "requires_toolsets": [],
+        "fallback_for_tools": [],
+        "requires_tools": []
+      }
+    },
+    {
+      "skill_name": "architecture-diagram",
+      "category": "creative",
+      "frontmatter_name": "architecture-diagram",
+      "description": "Generate professional dark-themed system architecture dia...",
       "platforms": [],
       "conditions": {
         "fallback_for_toolsets": [],
@@ -1169,6 +1190,22 @@
       "frontmatter_name": "unsloth",
       "description": "Expert guidance for fast fine-tuning with Unsloth - 2-5x ...",
       "platforms": [],
+      "conditions": {
+        "fallback_for_toolsets": [],
+        "requires_toolsets": [],
+        "fallback_for_tools": [],
+        "requires_tools": []
+      }
+    },
+    {
+      "skill_name": "nas",
+      "category": "nas",
+      "frontmatter_name": "nas-knowledge",
+      "description": "Access and search the company NAS knowledge base mounted ...",
+      "platforms": [
+        "macos",
+        "linux"
+      ],
       "conditions": {
         "fallback_for_toolsets": [],
         "requires_toolsets": [],

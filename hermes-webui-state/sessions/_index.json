@@ -1,18 +1,18 @@
 [
   {
-    "session_id": "1b10b3f6073d",
-    "title": "你好",
+    "session_id": "20260416_153421_97afeb",
+    "title": "中文问候开始",
     "workspace": "/Users/dianchi/JW-Bot/hermes-webui-state/workspace",
-    "model": "MiniMax-M2.7-highspeed",
-    "message_count": 8,
+    "model": "@minimax:MiniMax-M2.7-highspeed",
+    "message_count": 30,
     "created_at": 1776013259.393616,
-    "updated_at": 1776013313.6462772,
+    "updated_at": 1776324975.5058718,
     "pinned": false,
     "archived": false,
     "project_id": null,
     "profile": "default",
-    "input_tokens": 47042,
-    "output_tokens": 409,
+    "input_tokens": 5007227,
+    "output_tokens": 23890,
     "estimated_cost": null,
     "personality": null
   }
