@@ -4,7 +4,7 @@ AstrBot 到 Hermes Agent 的 Webhook 桥接插件
 功能：
 1. 将 QQ 消息转发到 Hermes Webhook
 2. 接收 Hermes 响应并发送回 QQ
-3. 维护会话映射
+3. 维护会话映射（持久化存储）
 
 配置：
 在 astrbot.json 中添加：
@@ -22,6 +22,8 @@ import json
 import hmac
 import hashlib
 import asyncio
+import os
+from pathlib import Path
 from typing import Optional
 from astrbot.api import logger
 from astrbot.api.event import AstrMessageEvent, MessageChain
@@ -33,7 +35,8 @@ from astrbot.api.platform import AstrBotMessage
 @register(
     "hermes_bridge",
     "hermes_bridge",
-    "AstrBot 到 Hermes Agent 的 Webhook 桥接"
+    "AstrBot 到 Hermes Agent 的 Webhook 桥接",
+    "1.0.0",
 )
 class HermesBridgePlugin(Star):
     def __init__(self, context):
@@ -56,6 +59,7 @@ class HermesBridgePlugin(Star):
         
         # 会话映射：qq_user_id -> hermes_session_key
         self.session_mapping = {}
+        self.session_mapping_file = Path(context.get_config_path()).parent / "hermes_bridge_sessions.json"
         
         # Webhook 服务器
         self._webhook_server = None
@@ -65,9 +69,13 @@ class HermesBridgePlugin(Star):
     
     async def initialize(self):
         """插件初始化"""
+        # 加载持久化的会话映射
+        await self._load_session_mapping()
+        
         # 启动接收 Hermes 响应的 Webhook 服务器
         await self._start_response_server()
         logger.info(f"[HermesBridge] 响应服务器已启动 on port {self.response_port}")
+        logger.info(f"[HermesBridge] 已加载 {len(self.session_mapping)} 个会话映射")
     
     async def on_message(self, event: AstrMessageEvent):
         """处理收到的 QQ 消息"""
@@ -238,11 +246,41 @@ class HermesBridgePlugin(Star):
             session_key = f"qq_{user_id}_{uuid.uuid4().hex[:8]}"
             self.session_mapping[user_id] = session_key
             logger.info(f"[HermesBridge] 创建新会话：{user_id} -> {session_key}")
+            # 异步保存到磁盘
+            asyncio.create_task(self._save_session_mapping())
         
         return self.session_mapping[user_id]
     
+    async def _load_session_mapping(self):
+        """从磁盘加载会话映射"""
+        try:
+            if self.session_mapping_file.exists():
+                data = json.loads(self.session_mapping_file.read_text(encoding='utf-8'))
+                self.session_mapping = data
+                logger.info(f"[HermesBridge] 成功加载 {len(self.session_mapping)} 个会话映射")
+            else:
+                logger.debug("[HermesBridge] 会话映射文件不存在，从空映射开始")
+        except Exception as e:
+            logger.error(f"[HermesBridge] 加载会话映射失败：{e}")
+            self.session_mapping = {}
+    
+    async def _save_session_mapping(self):
+        """保存会话映射到磁盘"""
+        try:
+            # 等待一小段时间，避免频繁写入
+            await asyncio.sleep(1.0)
+            self.session_mapping_file.write_text(
+                json.dumps(self.session_mapping, ensure_ascii=False, indent=2),
+                encoding='utf-8'
+            )
+            logger.debug(f"[HermesBridge] 会话映射已保存到 {self.session_mapping_file}")
+        except Exception as e:
+            logger.error(f"[HermesBridge] 保存会话映射失败：{e}")
+    
     async def shutdown(self):
         """插件关闭"""
+        # 保存会话映射
+        await self._save_session_mapping()
         if self._webhook_server:
             await self._webhook_server.shutdown()
         logger.info("[HermesBridge] 插件已关闭")

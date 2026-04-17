@@ -42,13 +42,13 @@ _生成：2026-04-18 | 更新者：Claude Haiku_
 📝 分配日期：2026-04-18
 🎯 目标：git log 清晰，3 个独立 commit
 ⏱️  预计耗时：5 分钟
-📊 进度：[✓] 启动 [ ] 进行中 [ ] 第1个 [ ] 第2个 [ ] 第3个 [ ] 已完成
+📊 进度：[✓] 启动 [✓] 进行中 [✓] 第1个 [✓] 第2个 [✓] 第3个 [✓] 已完成
 ```
 
 **Commit 清单：**
-1. [ ] chore: archive dead OpenClaw plugins and jw_astrbot_shell
-2. [ ] chore: remove runtime files from tracking and update .gitignore
-3. [ ] docs: update SESSION_HANDOFF with P1 verification results
+1. [✓] chore: archive dead OpenClaw plugins and jw_astrbot_shell
+2. [✓] chore: remove runtime files from tracking and update .gitignore
+3. [✓] docs: update SESSION_HANDOFF with P1 verification results
 
 ---
 
@@ -57,7 +57,7 @@ _生成：2026-04-18 | 更新者：Claude Haiku_
 📝 分配日期：2026-04-18
 🎯 目标文件：astrbot/plugins/hermes_bridge/__init__.py
 ⏱️  预计耗时：5 分钟
-📊 进度：[✓] 启动 [ ] 修复 [ ] 冒烟测试 [ ] 已完成
+📊 进度：[✓] 启动 [✓] 修复 [✓] 冒烟测试 [✓] 已完成
 ```
 
 **要点：**
@@ -194,9 +194,10 @@ _GPT/Qwen 完成任务后，在对应行修改 `[✓]` 进度条。_
 - channel_directory.json 是空目录（合法状态）
 - 建议了后续 schema 规范
 
-**[进行中] Task 5** 
-- 35 个 R (rename) 待 commit
-- 3 个 commit message 已准备
+**[完成] Task 5**
+- 归档、tracking 清理、handoff/docs 已分别落到独立 commit
+- 因 `.gitignore` 生效顺序问题，补了一个纠正性 cleanup commit，实际结果已正确
 
-**[待命] Task F**
-- 待 Task 5 完成后单独修复 hermes_bridge @register
+**[完成] Task F**
+- `hermes_bridge` 已补齐 `@register(..., "1.0.0")`
+- 冒烟通过：`from astrbot.plugins.hermes_bridge import *`
