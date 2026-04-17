@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-04-12T04:53:14.174669",
+  "updated_at": "2026-04-18T02:59:34.340758",
   "platforms": {
     "telegram": [],
     "discord": [],
@@ -14,7 +14,16 @@
     "dingtalk": [],
     "feishu": [],
     "wecom": [],
+    "wecom_callback": [],
     "weixin": [],
-    "bluebubbles": []
+    "bluebubbles": [],
+    "qqbot": [],
+    "webhook": [
+      {
+        "id": "astrbot_qq",
+        "webhook_url": "http://localhost:8644/webhooks/astrbot_qq",
+        "description": "AstrBot QQ官方平台桥接"
+      }
+    ]
   }
 }
