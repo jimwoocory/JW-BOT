@@ -1,0 +1,230 @@
+fallback_threshold: 0.75
+
+task_intents:
+  - pattern: "/task new"
+    confidence: 0.99
+    category: "task"
+    intent_type: "task_new"
+
+  - pattern: "/task intake marketing_plan"
+    confidence: 0.99
+    category: "task"
+    intent_type: "marketing_plan"
+    workflow_kind: "marketing_plan"
+
+  - pattern: "/task intake content_delivery"
+    confidence: 0.99
+    category: "task"
+    intent_type: "content_delivery"
+    workflow_kind: "content_delivery"
+
+  - pattern: "/task intake project_followup"
+    confidence: 0.99
+    category: "task"
+    intent_type: "project_followup"
+    workflow_kind: "project_followup"
+
+  - pattern: "/task intake approval_request"
+    confidence: 0.99
+    category: "task"
+    intent_type: "approval_request"
+    workflow_kind: "approval_request"
+
+  - pattern: "/task ls"
+    confidence: 0.98
+    category: "task"
+    intent_type: "task_ls"
+
+  - pattern: "/task show"
+    confidence: 0.98
+    category: "task"
+    intent_type: "task_show"
+
+  - pattern: "/task start"
+    confidence: 0.98
+    category: "task"
+    intent_type: "task_start"
+
+  - pattern: "/task review"
+    confidence: 0.98
+    category: "task"
+    intent_type: "task_review"
+
+  - pattern: "/task done"
+    confidence: 0.98
+    category: "task"
+    intent_type: "task_done"
+
+  - pattern: "/task fail"
+    confidence: 0.98
+    category: "task"
+    intent_type: "task_fail"
+
+  - pattern: "/task approve"
+    confidence: 0.98
+    category: "task"
+    intent_type: "task_approve"
+
+  - pattern: "/task reject"
+    confidence: 0.98
+    category: "task"
+    intent_type: "task_reject"
+
+  - keywords: ["营销计划", "推广计划", "营销方案", "渠道规划", "kpi", "kpis"]
+    confidence: 0.79
+    category: "task"
+    intent_type: "marketing_plan"
+    workflow_kind: "marketing_plan"
+
+  - keywords: ["内容交付", "交付物", "截止时间", "负责人", "素材交付", "deliverables"]
+    confidence: 0.78
+    category: "task"
+    intent_type: "content_delivery"
+    workflow_kind: "content_delivery"
+
+  - keywords: ["项目跟进", "当前进度", "风险", "下一步", "follow-up", "followup"]
+    confidence: 0.78
+    category: "task"
+    intent_type: "project_followup"
+    workflow_kind: "project_followup"
+
+  - keywords: ["审批", "批准", "驳回", "blocking reason", "decision"]
+    confidence: 0.78
+    category: "task"
+    intent_type: "approval_request"
+    workflow_kind: "approval_request"
+
+skill_intents:
+  - pattern: "生成图片"
+    confidence: 0.97
+    category: "skill"
+    intent_type: "dreamina_image"
+    skill_name: "dreamina_plugin"
+    command_name: "生成图片"
+
+  - pattern: "生成视频"
+    confidence: 0.97
+    category: "skill"
+    intent_type: "dreamina_video"
+    skill_name: "dreamina_plugin"
+    command_name: "生成视频"
+
+  - pattern: "图片转视频"
+    confidence: 0.97
+    category: "skill"
+    intent_type: "dreamina_image2video"
+    skill_name: "dreamina_plugin"
+    command_name: "图片转视频"
+
+  - pattern: "即梦余额"
+    confidence: 0.96
+    category: "skill"
+    intent_type: "dreamina_credit"
+    skill_name: "dreamina_plugin"
+    command_name: "即梦余额"
+
+  - pattern: "设置余额提醒"
+    confidence: 0.96
+    category: "skill"
+    intent_type: "dreamina_credit_alert"
+    skill_name: "dreamina_plugin"
+    command_name: "设置余额提醒"
+
+  - pattern: "即梦任务列表"
+    confidence: 0.96
+    category: "skill"
+    intent_type: "dreamina_task_list"
+    skill_name: "dreamina_plugin"
+    command_name: "即梦任务列表"
+
+  - pattern: "查询即梦任务"
+    confidence: 0.96
+    category: "skill"
+    intent_type: "dreamina_task_lookup"
+    skill_name: "dreamina_plugin"
+    command_name: "查询即梦任务"
+
+  - keywords: ["画一张", "做一张图", "制作插画", "生成海报", "画图", "来一张海报"]
+    confidence: 0.83
+    category: "skill"
+    intent_type: "dreamina_image"
+    skill_name: "dreamina_plugin"
+    command_name: "生成图片"
+
+  - keywords: ["做个视频", "生成动画", "做个动画", "短片", "视频画面", "动画短片"]
+    confidence: 0.83
+    category: "skill"
+    intent_type: "dreamina_video"
+    skill_name: "dreamina_plugin"
+    command_name: "生成视频"
+
+  - keywords: ["github issue", "github pr", "pull request", "代码审查", "仓库管理", "github 仓库"]
+    confidence: 0.69
+    category: "skill"
+    intent_type: "github"
+    skill_name: "github"
+
+  - keywords: ["google docs", "google sheets", "google workspace", "谷歌文档", "谷歌表格"]
+    confidence: 0.68
+    category: "skill"
+    intent_type: "google_workspace"
+    skill_name: "google-workspace"
+
+  - keywords: ["notion", "知识库页面", "notion 页面", "notion 数据库"]
+    confidence: 0.67
+    category: "skill"
+    intent_type: "notion"
+    skill_name: "notion"
+
+  - keywords: ["附近餐厅", "附近咖啡", "nearby", "附近有什么", "找附近"]
+    confidence: 0.67
+    category: "skill"
+    intent_type: "find_nearby"
+    skill_name: "find-nearby"
+
+  - keywords: ["arxiv", "论文检索", "学术论文", "找论文"]
+    confidence: 0.67
+    category: "skill"
+    intent_type: "arxiv"
+    skill_name: "arxiv"
+
+llm_fallback:
+  system_prompt: |
+    你是一个 AstrBot Router 意图分类器。你的唯一任务是把用户消息分类成 task、skill 或 conversation。
+
+    允许的 workflow_kind：
+    - marketing_plan
+    - content_delivery
+    - project_followup
+    - approval_request
+
+    允许的 skill_name：
+    - dreamina_plugin
+    - github
+    - google-workspace
+    - notion
+    - find-nearby
+    - arxiv
+    - youtube-content
+    - powerpoint
+    - obsidian
+    - hermes-agent
+
+    判定规则：
+    1. 如果消息明显是在创建/归类一个工作任务，返回 category=task。
+    2. 如果消息明显想触发某个技能或插件能力，返回 category=skill。
+    3. 其他普通聊天、问答、寒暄都返回 category=conversation。
+    4. 除非非常确定，否则不要返回高于 0.75 的 confidence。
+    5. 只返回 JSON，不要加解释。
+
+    JSON 格式：
+    {
+      "category": "task|skill|conversation",
+      "intent_type": "marketing_plan|dreamina_image|general",
+      "confidence": 0.0,
+      "workflow_kind": "marketing_plan|null",
+      "skill_name": "dreamina_plugin|null",
+      "metadata": {
+        "reason": "short reason"
+      }
+    }
