@@ -133,16 +133,21 @@ class HarnessCommands:
                 message_text=event.message_str,
             )
         )
+        await engine.complete_task(
+            task.task_id,
+            result={
+                "summary": brief.strip()[:200],
+                "source": "workflow_intake",
+            },
+        )
         lines = [
             "已创建 Workflow Harness 任务：",
             f"- task_id: {task.task_id}",
             f"- title: {task.title}",
             f"- domain: {task.domain}",
             f"- workflow_kind: {task.payload.get('workflow_kind')}",
-            f"- review_required_by_default: {task.payload.get('review_required_by_default')}",
         ]
         event.set_result(MessageEventResult().message("\n".join(lines)).use_t2i(False))
-        event.should_call_llm(True)
 
     async def task_ls(self, event: AstrMessageEvent) -> None:
         store = self.context.harness_store
