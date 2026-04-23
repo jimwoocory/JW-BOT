@@ -61,6 +61,9 @@ class HermesBridgePlugin(Star):
         db_path = Path(context.get_config_path()).parent.parent / "data" / "hermes_sessions.db"
         self.session_router = SessionRouter(str(db_path))
 
+        # session_key → unified_msg_origin 的内存缓存（重启后由首条消息重建）
+        self._umo_cache: dict[str, str] = {}
+
         # Webhook 服务器
         self._webhook_server = None
         self._webhook_app = None
@@ -95,10 +98,15 @@ class HermesBridgePlugin(Star):
                 platform_type = PlatformType.QQ
             session_key = self._get_or_create_session(user_id, platform_type)
 
+            # 缓存 session_key → unified_msg_origin，供响应回传时使用
+            umo = event.unified_msg_origin
+            self._umo_cache[session_key] = umo
+
             # 3. 构建 Webhook 数据
             message_data = {
                 "user_id": user_id,
                 "session_key": session_key,
+                "unified_msg_origin": umo,
                 "message": message_text,
                 "message_type": "group" if event.is_group() else "private",
                 "platform": platform_type.value,
@@ -187,58 +195,50 @@ class HermesBridgePlugin(Star):
         """处理 Hermes 返回的响应"""
         try:
             data = await request.json()
-            
-            # 提取响应信息
+
             response_text = data.get('response', '') or data.get('message', '')
             session_key = data.get('session_key', '')
-            user_id = data.get('user_id', '')
-            
+
             if not response_text:
                 logger.warning(f"[HermesBridge] 收到空响应：{data}")
                 return aiohttp.web.Response(status=200)
-            
-            # 查找对应的用户（反查 session_key → platform_user）
-            if not user_id and session_key:
+
+            # 解析 unified_msg_origin：优先从响应体取，fallback 内存缓存
+            umo: Optional[str] = data.get('unified_msg_origin') or self._umo_cache.get(session_key)
+            if not umo and session_key:
+                # 最终 fallback：从 SessionRouter 反查，只拿到平台+user_id
                 platform_user = self.session_router.get_platform_user_by_session(session_key)
                 if platform_user:
-                    user_id = platform_user.user_id
-            
-            if not user_id:
-                logger.error(f"[HermesBridge] 找不到用户 ID: session_key={session_key}")
+                    logger.warning(
+                        "[HermesBridge] umo 缓存未命中，无法重建完整 unified_msg_origin，"
+                        "响应将丢失（请重启后重发一条消息以刷新缓存）"
+                    )
+
+            if not umo:
+                logger.error(f"[HermesBridge] 无法找到回传地址: session_key={session_key}")
                 return aiohttp.web.Response(status=404)
-            
-            # 发送回 QQ
-            await self._send_to_qq(user_id, response_text)
-            
-            logger.info(f"[HermesBridge] 已将 Hermes 响应发送回 QQ 用户 {user_id}")
-            
+
+            await self._send_to_platform(umo, response_text)
+
+            logger.info(f"[HermesBridge] 已将 Hermes 响应发送回 {umo}")
             return aiohttp.web.Response(
                 status=200,
-                text=json.dumps({"status": "ok", "user_id": user_id})
+                text=json.dumps({"status": "ok", "umo": umo}),
             )
-            
+
         except Exception as e:
             logger.error(f"[HermesBridge] 处理响应失败：{e}")
             return aiohttp.web.Response(status=500, text=str(e))
     
-    async def _send_to_qq(self, user_id: str, message: str):
-        """发送消息到 QQ"""
+    async def _send_to_platform(self, umo: str, message: str):
+        """通过 unified_msg_origin 将消息发回原平台用户"""
         try:
-            # 获取平台实例
-            platform = self.context.get_platform()
-            
-            # 构造消息链
             message_chain = MessageChain([Plain(message)])
-            
-            # 发送消息（这里需要根据实际 API 调整）
-            # 注意：AstrBot 的 API 可能需要不同的调用方式
-            logger.debug(f"[HermesBridge] 准备发送消息到 QQ {user_id}: {message[:50]}...")
-            
-            # TODO: 这里需要根据 AstrBot 的实际 API 调整
-            # 可能需要使用 event.send_message() 或其他方式
-            
+            success = await self.context.send_message(umo, message_chain)
+            if not success:
+                logger.error(f"[HermesBridge] context.send_message 返回 False，umo={umo}")
         except Exception as e:
-            logger.error(f"[HermesBridge] 发送消息到 QQ 失败：{e}")
+            logger.error(f"[HermesBridge] 发送消息失败 umo={umo}：{e}")
     
     def _get_or_create_session(self, user_id: str, platform: PlatformType) -> str:
         """获取或创建持久化会话（委托给 SessionRouter）"""
