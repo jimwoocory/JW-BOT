@@ -30,15 +30,30 @@ from astrbot.plugins.hermes_bridge.router import (
 
 
 def test_platform_type_values():
-    """PlatformType 应包含所有预期的平台枚举值。"""
+    """PlatformType 应包含所有预期的平台枚举值，包括 FEISHU。"""
     assert PlatformType.WEBUI.value == "webui"
     assert PlatformType.QQ.value == "qq"
+    assert PlatformType.FEISHU.value == "feishu"
     assert PlatformType.TELEGRAM.value == "telegram"
     assert PlatformType.DISCORD.value == "discord"
     assert PlatformType.SLACK.value == "slack"
     assert PlatformType.WHATSAPP.value == "whatsapp"
     assert PlatformType.HOMEASSISTANT.value == "homeassistant"
     assert PlatformType.SIGNAL.value == "signal"
+
+
+def test_platform_type_from_astrbot_platform_id():
+    """from_astrbot_platform_id 应正确映射 AstrBot 平台适配器 ID。"""
+    assert PlatformType.from_astrbot_platform_id("qq_official") == PlatformType.QQ
+    assert PlatformType.from_astrbot_platform_id("lark") == PlatformType.FEISHU
+    assert PlatformType.from_astrbot_platform_id("webchat") == PlatformType.WEBUI
+
+
+def test_platform_type_from_astrbot_platform_id_unknown():
+    """from_astrbot_platform_id 未知适配器应 fallback 到 from_string。"""
+    assert PlatformType.from_astrbot_platform_id("telegram") == PlatformType.TELEGRAM
+    with pytest.raises(ValueError):
+        PlatformType.from_astrbot_platform_id("unknown_platform_xyz")
 
 
 def test_platform_type_from_string_exact():
@@ -938,3 +953,73 @@ async def test_default_intent_includes_activated_handler_count(intent_router):
     """空消息且 context 含 activated_handler_count 时应透传。"""
     intent = await intent_router.classify("", {"activated_handler_count": 5})
     assert intent.metadata.get("activated_handler_count") == 5
+
+
+# ============================================================================
+# Section 16: 新增 skill 路由规则覆盖测试
+# ============================================================================
+
+
+@pytest.mark.asyncio
+async def test_classify_powerpoint_pattern(intent_router):
+    """精确模式"做PPT"应高置信度识别 powerpoint skill。"""
+    intent = await intent_router.classify("做PPT", {})
+    assert intent.category == "skill"
+    assert intent.intent_type == "powerpoint"
+    assert intent.skill_name == "powerpoint"
+    assert intent.confidence >= 0.95
+
+
+@pytest.mark.asyncio
+async def test_classify_powerpoint_keyword(intent_router):
+    """关键词"制作PPT"应识别 powerpoint skill。"""
+    intent = await intent_router.classify("帮我制作PPT，主题是年终总结", {})
+    assert intent.category == "skill"
+    assert intent.intent_type == "powerpoint"
+    assert intent.skill_name == "powerpoint"
+
+
+@pytest.mark.asyncio
+async def test_classify_pptx_keyword(intent_router):
+    """关键词"pptx"应识别 powerpoint skill。"""
+    intent = await intent_router.classify("生成一个 pptx 文件", {})
+    assert intent.category == "skill"
+    assert intent.intent_type == "powerpoint"
+
+
+@pytest.mark.asyncio
+async def test_classify_research_paper_writing(intent_router):
+    """关键词"写论文"应识别 research_paper_writing skill（置信度低于阈值，走 LLM）。"""
+    intent = await intent_router.classify("帮我写论文，关于机器学习", {})
+    # 置信度 0.72 < fallback_threshold 0.75，规则命中但需 LLM 确认
+    # 无 LLM 时直接返回规则结果
+    assert intent.intent_type == "research_paper_writing"
+    assert intent.skill_name == "research-paper-writing"
+
+
+@pytest.mark.asyncio
+async def test_classify_linear(intent_router):
+    """关键词"linear issue"应识别 linear skill。"""
+    intent = await intent_router.classify("帮我创建 linear issue", {})
+    assert intent.category == "skill"
+    assert intent.intent_type == "linear"
+    assert intent.skill_name == "linear"
+
+
+@pytest.mark.asyncio
+async def test_classify_obsidian(intent_router):
+    """关键词"obsidian"应识别 obsidian skill。"""
+    intent = await intent_router.classify("obsidian 笔记怎么同步", {})
+    assert intent.category == "skill"
+    assert intent.intent_type == "obsidian"
+    assert intent.skill_name == "obsidian"
+
+
+@pytest.mark.asyncio
+async def test_classify_hermes_agent(intent_router):
+    """关键词"hermes agent"应识别 hermes_agent skill，置信度达阈值直接命中。"""
+    intent = await intent_router.classify("hermes agent 怎么配置", {})
+    assert intent.category == "skill"
+    assert intent.intent_type == "hermes_agent"
+    assert intent.skill_name == "hermes-agent"
+    assert intent.confidence >= 0.75

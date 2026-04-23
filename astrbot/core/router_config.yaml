@@ -151,6 +151,51 @@ skill_intents:
     intent_type: "arxiv"
     skill_name: "arxiv"
 
+  - pattern: "做PPT"
+    confidence: 0.96
+    category: "skill"
+    intent_type: "powerpoint"
+    skill_name: "powerpoint"
+    command_name: "做PPT"
+
+  - pattern: "生成PPT"
+    confidence: 0.96
+    category: "skill"
+    intent_type: "powerpoint"
+    skill_name: "powerpoint"
+    command_name: "生成PPT"
+
+  - keywords: ["制作PPT", "做幻灯片", "制作演示文稿", "生成幻灯片", "PPT制作", "pptx"]
+    confidence: 0.85
+    category: "skill"
+    intent_type: "powerpoint"
+    skill_name: "powerpoint"
+    command_name: "生成PPT"
+
+  - keywords: ["写论文", "帮我写论文", "论文写作", "学术写作", "research paper writing", "撰写论文"]
+    confidence: 0.72
+    category: "skill"
+    intent_type: "research_paper_writing"
+    skill_name: "research-paper-writing"
+
+  - keywords: ["linear issue", "linear任务", "linear 项目", "创建linear", "linear ticket"]
+    confidence: 0.70
+    category: "skill"
+    intent_type: "linear"
+    skill_name: "linear"
+
+  - keywords: ["obsidian", "obsidian笔记", "obsidian vault", "ob笔记"]
+    confidence: 0.68
+    category: "skill"
+    intent_type: "obsidian"
+    skill_name: "obsidian"
+
+  - keywords: ["hermes配置", "hermes设置", "hermes agent", "hermes怎么用", "hermes gateway"]
+    confidence: 0.75
+    category: "skill"
+    intent_type: "hermes_agent"
+    skill_name: "hermes-agent"
+
 llm_fallback:
   system_prompt: |
     你是一个 AstrBot Router 意图分类器。你的唯一任务是把用户消息分类成 task、skill 或 conversation。
@@ -168,8 +213,9 @@ llm_fallback:
     - notion
     - find-nearby
     - arxiv
-    - youtube-content
     - powerpoint
+    - research-paper-writing
+    - linear
     - obsidian
     - hermes-agent
 
