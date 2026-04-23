@@ -556,51 +556,51 @@ async def test_classify_task_intake_marketing_plan(intent_router):
 
 @pytest.mark.asyncio
 async def test_classify_task_ls(intent_router):
-    """/task ls 应识别为 task_ls。"""
+    """/task ls 等管理命令不再有 Router 规则——由 star handler 拦截，Router 返回 conversation。"""
     intent = await intent_router.classify("/task ls", {})
-    assert intent.intent_type == "task_ls"
+    assert intent.category == "conversation"
 
 
 @pytest.mark.asyncio
 async def test_classify_task_show(intent_router):
-    """/task show 应识别为 task_show。"""
+    """/task show 由 star handler 处理，Router 不分类。"""
     intent = await intent_router.classify("/task show abc123", {})
-    assert intent.intent_type == "task_show"
+    assert intent.category == "conversation"
 
 
 @pytest.mark.asyncio
 async def test_classify_task_start(intent_router):
-    """/task start 应识别为 task_start。"""
+    """/task start 由 star handler 处理，Router 不分类。"""
     intent = await intent_router.classify("/task start xyz", {})
-    assert intent.intent_type == "task_start"
+    assert intent.category == "conversation"
 
 
 @pytest.mark.asyncio
 async def test_classify_task_done(intent_router):
-    """/task done 应识别为 task_done。"""
+    """/task done 由 star handler 处理，Router 不分类。"""
     intent = await intent_router.classify("/task done xyz", {})
-    assert intent.intent_type == "task_done"
+    assert intent.category == "conversation"
 
 
 @pytest.mark.asyncio
 async def test_classify_task_fail(intent_router):
-    """/task fail 应识别为 task_fail。"""
+    """/task fail 由 star handler 处理，Router 不分类。"""
     intent = await intent_router.classify("/task fail xyz", {})
-    assert intent.intent_type == "task_fail"
+    assert intent.category == "conversation"
 
 
 @pytest.mark.asyncio
 async def test_classify_task_approve(intent_router):
-    """/task approve 应识别为 task_approve。"""
+    """/task approve 由 star handler 处理，Router 不分类。"""
     intent = await intent_router.classify("/task approve xyz", {})
-    assert intent.intent_type == "task_approve"
+    assert intent.category == "conversation"
 
 
 @pytest.mark.asyncio
 async def test_classify_task_reject(intent_router):
-    """/task reject 应识别为 task_reject。"""
+    """/task reject 由 star handler 处理，Router 不分类。"""
     intent = await intent_router.classify("/task reject xyz", {})
-    assert intent.intent_type == "task_reject"
+    assert intent.category == "conversation"
 
 
 @pytest.mark.asyncio

@@ -1,11 +1,13 @@
 fallback_threshold: 0.75
 
 task_intents:
+  # 显式命令：由 star handler 拦截，Router 仅作分类标注
   - pattern: "/task new"
     confidence: 0.99
     category: "task"
     intent_type: "task_new"
 
+  # 工作流创建命令：Router 直接创建 Harness 任务
   - pattern: "/task intake marketing_plan"
     confidence: 0.99
     category: "task"
@@ -30,66 +32,27 @@ task_intents:
     intent_type: "approval_request"
     workflow_kind: "approval_request"
 
-  - pattern: "/task ls"
-    confidence: 0.98
-    category: "task"
-    intent_type: "task_ls"
-
-  - pattern: "/task show"
-    confidence: 0.98
-    category: "task"
-    intent_type: "task_show"
-
-  - pattern: "/task start"
-    confidence: 0.98
-    category: "task"
-    intent_type: "task_start"
-
-  - pattern: "/task review"
-    confidence: 0.98
-    category: "task"
-    intent_type: "task_review"
-
-  - pattern: "/task done"
-    confidence: 0.98
-    category: "task"
-    intent_type: "task_done"
-
-  - pattern: "/task fail"
-    confidence: 0.98
-    category: "task"
-    intent_type: "task_fail"
-
-  - pattern: "/task approve"
-    confidence: 0.98
-    category: "task"
-    intent_type: "task_approve"
-
-  - pattern: "/task reject"
-    confidence: 0.98
-    category: "task"
-    intent_type: "task_reject"
-
-  - keywords: ["营销计划", "推广计划", "营销方案", "渠道规划", "kpi", "kpis"]
-    confidence: 0.79
+  # 关键词匹配：置信度低于阈值(0.75)，强制走 LLM 二次确认后再创建任务
+  - keywords: ["营销计划", "推广计划", "营销方案", "渠道规划"]
+    confidence: 0.70
     category: "task"
     intent_type: "marketing_plan"
     workflow_kind: "marketing_plan"
 
-  - keywords: ["内容交付", "交付物", "截止时间", "负责人", "素材交付", "deliverables"]
-    confidence: 0.78
+  - keywords: ["内容交付", "交付物", "素材交付", "deliverables"]
+    confidence: 0.70
     category: "task"
     intent_type: "content_delivery"
     workflow_kind: "content_delivery"
 
-  - keywords: ["项目跟进", "当前进度", "风险", "下一步", "follow-up", "followup"]
-    confidence: 0.78
+  - keywords: ["项目跟进", "follow-up", "followup"]
+    confidence: 0.70
     category: "task"
     intent_type: "project_followup"
     workflow_kind: "project_followup"
 
-  - keywords: ["审批", "批准", "驳回", "blocking reason", "decision"]
-    confidence: 0.78
+  - keywords: ["审批请求", "发起审批", "需要审批", "approval request"]
+    confidence: 0.70
     category: "task"
     intent_type: "approval_request"
     workflow_kind: "approval_request"

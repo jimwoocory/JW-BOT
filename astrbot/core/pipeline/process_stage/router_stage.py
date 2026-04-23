@@ -47,6 +47,9 @@ class RouterStage:
         if intent.category == "task" and intent.workflow_kind:
             return await self._handle_task_intent(event, intent)
 
+        if intent.category == "task" and intent.intent_type == "task_new":
+            return await self._handle_task_new_intent(event, intent)
+
         if intent.category == "skill":
             return await self._handle_skill_intent(event, intent)
 
@@ -76,6 +79,21 @@ class RouterStage:
             "session_key": extras.get("session_key"),
             "webhook_event": extras.get("webhook_event"),
         }
+
+    async def _handle_task_new_intent(
+        self, event: AstrMessageEvent, intent: Intent
+    ) -> bool:
+        lines = [
+            "请指定 workflow 类型来创建任务，例如：",
+            "• `/task intake marketing_plan <简述>` — 营销策划",
+            "• `/task intake content_delivery <简述>` — 内容交付",
+            "• `/task intake project_followup <简述>` — 项目跟进",
+            "• `/task intake approval_request <简述>` — 审批确认",
+        ]
+        event.set_result(
+            MessageEventResult().message("\n".join(lines)).use_t2i(False).stop_event(),
+        )
+        return True
 
     async def _handle_task_intent(
         self, event: AstrMessageEvent, intent: Intent
@@ -115,7 +133,7 @@ class RouterStage:
         event: AstrMessageEvent,
         intent: Intent,
     ) -> bool:
-        if intent.skill_name != "dreamina_plugin":
+        if not intent.skill_name:
             return False
 
         synthetic_command = intent.metadata.get("synthetic_command")
@@ -125,11 +143,17 @@ class RouterStage:
                 return False
             synthetic_command = str(command_name)
 
-        return await self._activate_skill_handlers(
+        activated = await self._activate_skill_handlers(
             event,
-            plugin_name="dreamina_plugin",
+            plugin_name=intent.skill_name,
             synthetic_message=str(synthetic_command),
         )
+        if not activated and not event.get_extra("activated_handlers"):
+            logger.debug(
+                "Router skill '%s' has no registered star handlers, falling through to LLM.",
+                intent.skill_name,
+            )
+        return activated
 
     async def _activate_skill_handlers(
         self,
