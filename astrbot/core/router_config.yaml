@@ -1,36 +1,13 @@
 fallback_threshold: 0.75
 
 task_intents:
-  # 显式命令：由 star handler 拦截，Router 仅作分类标注
+  # /task new 由 Router 处理：返回 workflow_kind 选择菜单
   - pattern: "/task new"
     confidence: 0.99
     category: "task"
     intent_type: "task_new"
 
-  # 工作流创建命令：Router 直接创建 Harness 任务
-  - pattern: "/task intake marketing_plan"
-    confidence: 0.99
-    category: "task"
-    intent_type: "marketing_plan"
-    workflow_kind: "marketing_plan"
-
-  - pattern: "/task intake content_delivery"
-    confidence: 0.99
-    category: "task"
-    intent_type: "content_delivery"
-    workflow_kind: "content_delivery"
-
-  - pattern: "/task intake project_followup"
-    confidence: 0.99
-    category: "task"
-    intent_type: "project_followup"
-    workflow_kind: "project_followup"
-
-  - pattern: "/task intake approval_request"
-    confidence: 0.99
-    category: "task"
-    intent_type: "approval_request"
-    workflow_kind: "approval_request"
+  # /task intake <kind> <brief> 由 builtin_commands star handler 拦截，Router 不处理
 
   # 关键词匹配：置信度低于阈值(0.75)，强制走 LLM 二次确认后再创建任务
   - keywords: ["营销计划", "推广计划", "营销方案", "渠道规划"]

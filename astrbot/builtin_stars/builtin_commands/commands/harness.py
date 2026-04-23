@@ -142,6 +142,7 @@ class HarnessCommands:
             f"- review_required_by_default: {task.payload.get('review_required_by_default')}",
         ]
         event.set_result(MessageEventResult().message("\n".join(lines)).use_t2i(False))
+        event.should_call_llm(True)
 
     async def task_ls(self, event: AstrMessageEvent) -> None:
         store = self.context.harness_store

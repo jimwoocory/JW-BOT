@@ -562,11 +562,9 @@ async def test_classify_task_new(intent_router):
 
 @pytest.mark.asyncio
 async def test_classify_task_intake_marketing_plan(intent_router):
-    """/task intake marketing_plan 应映射到 workflow_kind。"""
-    intent = await intent_router.classify("/task intake marketing_plan 做一份 Q3 营销计划", {})
-    assert intent.category == "task"
-    assert intent.intent_type == "marketing_plan"
-    assert intent.workflow_kind == "marketing_plan"
+    """/task intake marketing_plan 由 star handler 拦截，Router 不处理 → conversation。"""
+    intent = await intent_router.classify("/task intake marketing_plan Q3 brief", {})
+    assert intent.category == "conversation"
 
 
 @pytest.mark.asyncio
