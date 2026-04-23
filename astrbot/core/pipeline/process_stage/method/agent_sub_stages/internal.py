@@ -8,6 +8,7 @@ from dataclasses import replace
 from astrbot.core import db_helper, logger
 from astrbot.core.agent.message import Message
 from astrbot.core.agent.response import AgentStats
+from astrbot.core.harness.contracts import HARNESS_TERMINAL_STATUSES
 from astrbot.core.astr_main_agent import (
     MainAgentBuildConfig,
     MainAgentBuildResult,
@@ -388,6 +389,11 @@ class InternalAgentSubStage(Stage):
                             user_aborted=agent_runner.was_aborted(),
                         )
 
+                    if not agent_runner.was_aborted() and not event.is_stopped():
+                        asyncio.create_task(
+                            self._maybe_complete_harness_task(event, final_resp)
+                        )
+
                     asyncio.create_task(
                         Metric.upload(
                             llm_tick=1,
@@ -495,6 +501,40 @@ class InternalAgentSubStage(Stage):
                 "user_aborted": user_aborted,
             },
         )
+
+    async def _maybe_complete_harness_task(
+        self,
+        event: AstrMessageEvent,
+        final_resp: LLMResponse | None,
+    ) -> None:
+        """完成当前会话的活跃 Harness 任务并触发记忆提升。"""
+        if not final_resp or not (final_resp.completion_text or "").strip():
+            return
+        plugin_ctx = self.ctx.plugin_manager.context
+        if plugin_ctx.harness_engine is None:
+            return
+        task = await plugin_ctx.get_current_harness_task(event.unified_msg_origin)
+        if task is None or task.status in HARNESS_TERMINAL_STATUSES:
+            return
+        summary = (final_resp.completion_text or "").strip()[:200]
+        try:
+            await plugin_ctx.harness_engine.complete_task(
+                task.task_id,
+                result={
+                    "summary": summary,
+                    "response_preview": (final_resp.completion_text or "").strip()[:500],
+                    "source": "internal_agent",
+                },
+            )
+            logger.debug(
+                "Harness task %s completed by internal agent (%d chars summary)",
+                task.task_id,
+                len(summary),
+            )
+        except Exception:
+            logger.warning(
+                "Failed to complete harness task %s", task.task_id, exc_info=True
+            )
 
 
 # we prevent astrbot from connecting to known malicious hosts
