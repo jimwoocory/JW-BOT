@@ -32,20 +32,39 @@ class PlatformType(str, Enum):
     """支持的平台类型"""
     WEBUI = "webui"
     QQ = "qq"
+    FEISHU = "feishu"
     TELEGRAM = "telegram"
     DISCORD = "discord"
     SLACK = "slack"
     WHATSAPP = "whatsapp"
     HOMEASSISTANT = "homeassistant"
     SIGNAL = "signal"
-    
+
+    @classmethod
+    def from_astrbot_platform_id(cls, platform_id: str) -> "PlatformType":
+        """Map AstrBot platform_id strings to PlatformType.
+
+        Known mappings:
+          qq_official → QQ
+          lark        → FEISHU
+        Falls back to from_string for unlisted adapters.
+        """
+        _map = {
+            "qq_official": cls.QQ,
+            "lark": cls.FEISHU,
+            "webchat": cls.WEBUI,
+        }
+        result = _map.get(platform_id.lower())
+        if result is not None:
+            return result
+        return cls.from_string(platform_id)
+
     @classmethod
     def from_string(cls, value: str) -> 'PlatformType':
         """从字符串解析平台类型（大小写不敏感）"""
         try:
             return cls[value.upper()]
         except KeyError:
-            # 尝试模糊匹配
             value_lower = value.lower()
             for platform in cls:
                 if platform.value.lower() == value_lower:

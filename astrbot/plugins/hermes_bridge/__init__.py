@@ -2,9 +2,9 @@
 AstrBot 到 Hermes Agent 的 Webhook 桥接插件
 
 功能：
-1. 将 QQ 消息转发到 Hermes Webhook
-2. 接收 Hermes 响应并发送回 QQ
-3. 维护会话映射（持久化存储）
+1. 将 QQ/飞书消息转发到 Hermes Webhook
+2. 接收 Hermes 响应并发送回对应平台
+3. 通过 SessionRouter 持久化会话映射（SQLite）
 
 配置：
 在 astrbot.json 中添加：
@@ -22,7 +22,6 @@ import json
 import hmac
 import hashlib
 import asyncio
-import os
 from pathlib import Path
 from typing import Optional
 from astrbot.api import logger
@@ -30,6 +29,7 @@ from astrbot.api.event import AstrMessageEvent, MessageChain
 from astrbot.api.message_components import Plain
 from astrbot.api.star import Star, register
 from astrbot.api.platform import AstrBotMessage
+from .router import SessionRouter, PlatformUser, PlatformType
 
 
 @register(
@@ -57,25 +57,21 @@ class HermesBridgePlugin(Star):
             8645
         )
         
-        # 会话映射：qq_user_id -> hermes_session_key
-        self.session_mapping = {}
-        self.session_mapping_file = Path(context.get_config_path()).parent / "hermes_bridge_sessions.json"
-        
+        # 持久化会话路由（SQLite）
+        db_path = Path(context.get_config_path()).parent.parent / "data" / "hermes_sessions.db"
+        self.session_router = SessionRouter(str(db_path))
+
         # Webhook 服务器
         self._webhook_server = None
         self._webhook_app = None
-        
+
         logger.info(f"[HermesBridge] 插件已初始化，Webhook URL: {self.hermes_webhook_url}")
     
     async def initialize(self):
         """插件初始化"""
-        # 加载持久化的会话映射
-        await self._load_session_mapping()
-        
         # 启动接收 Hermes 响应的 Webhook 服务器
         await self._start_response_server()
         logger.info(f"[HermesBridge] 响应服务器已启动 on port {self.response_port}")
-        logger.info(f"[HermesBridge] 已加载 {len(self.session_mapping)} 个会话映射")
     
     async def on_message(self, event: AstrMessageEvent):
         """处理收到的 QQ 消息"""
@@ -92,15 +88,20 @@ class HermesBridgePlugin(Star):
             
             # 2. 获取或创建会话映射
             user_id = str(event.get_sender_id())
-            session_key = self._get_or_create_session(user_id)
-            
+            platform_id = str(event.get_platform_id())
+            try:
+                platform_type = PlatformType.from_astrbot_platform_id(platform_id)
+            except ValueError:
+                platform_type = PlatformType.QQ
+            session_key = self._get_or_create_session(user_id, platform_type)
+
             # 3. 构建 Webhook 数据
             message_data = {
                 "user_id": user_id,
                 "session_key": session_key,
                 "message": message_text,
                 "message_type": "group" if event.is_group() else "private",
-                "platform": "qq",
+                "platform": platform_type.value,
                 "message_id": str(event.message_id),
                 "sender_nickname": event.get_sender_name() or user_id,
             }
@@ -196,10 +197,11 @@ class HermesBridgePlugin(Star):
                 logger.warning(f"[HermesBridge] 收到空响应：{data}")
                 return aiohttp.web.Response(status=200)
             
-            # 查找对应的 QQ 用户
+            # 查找对应的用户（反查 session_key → platform_user）
             if not user_id and session_key:
-                # 从会话映射反查用户 ID
-                user_id = self.session_mapping.get(session_key)
+                platform_user = self.session_router.get_platform_user_by_session(session_key)
+                if platform_user:
+                    user_id = platform_user.user_id
             
             if not user_id:
                 logger.error(f"[HermesBridge] 找不到用户 ID: session_key={session_key}")
@@ -238,49 +240,15 @@ class HermesBridgePlugin(Star):
         except Exception as e:
             logger.error(f"[HermesBridge] 发送消息到 QQ 失败：{e}")
     
-    def _get_or_create_session(self, user_id: str) -> str:
-        """获取或创建会话"""
-        if user_id not in self.session_mapping:
-            # 创建新会话
-            import uuid
-            session_key = f"qq_{user_id}_{uuid.uuid4().hex[:8]}"
-            self.session_mapping[user_id] = session_key
-            logger.info(f"[HermesBridge] 创建新会话：{user_id} -> {session_key}")
-            # 异步保存到磁盘
-            asyncio.create_task(self._save_session_mapping())
-        
-        return self.session_mapping[user_id]
-    
-    async def _load_session_mapping(self):
-        """从磁盘加载会话映射"""
-        try:
-            if self.session_mapping_file.exists():
-                data = json.loads(self.session_mapping_file.read_text(encoding='utf-8'))
-                self.session_mapping = data
-                logger.info(f"[HermesBridge] 成功加载 {len(self.session_mapping)} 个会话映射")
-            else:
-                logger.debug("[HermesBridge] 会话映射文件不存在，从空映射开始")
-        except Exception as e:
-            logger.error(f"[HermesBridge] 加载会话映射失败：{e}")
-            self.session_mapping = {}
-    
-    async def _save_session_mapping(self):
-        """保存会话映射到磁盘"""
-        try:
-            # 等待一小段时间，避免频繁写入
-            await asyncio.sleep(1.0)
-            self.session_mapping_file.write_text(
-                json.dumps(self.session_mapping, ensure_ascii=False, indent=2),
-                encoding='utf-8'
-            )
-            logger.debug(f"[HermesBridge] 会话映射已保存到 {self.session_mapping_file}")
-        except Exception as e:
-            logger.error(f"[HermesBridge] 保存会话映射失败：{e}")
+    def _get_or_create_session(self, user_id: str, platform: PlatformType) -> str:
+        """获取或创建持久化会话（委托给 SessionRouter）"""
+        platform_user = PlatformUser(platform=platform, user_id=user_id)
+        session_key = self.session_router.get_or_create_session(platform_user)
+        logger.debug(f"[HermesBridge] session {platform.value}:{user_id} -> {session_key}")
+        return session_key
     
     async def shutdown(self):
         """插件关闭"""
-        # 保存会话映射
-        await self._save_session_mapping()
         if self._webhook_server:
             await self._webhook_server.shutdown()
         logger.info("[HermesBridge] 插件已关闭")
