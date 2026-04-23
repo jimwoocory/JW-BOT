@@ -133,19 +133,14 @@ class HarnessCommands:
                 message_text=event.message_str,
             )
         )
-        await engine.complete_task(
-            task.task_id,
-            result={
-                "summary": brief.strip()[:200],
-                "source": "workflow_intake",
-            },
-        )
         lines = [
             "已创建 Workflow Harness 任务：",
             f"- task_id: {task.task_id}",
             f"- title: {task.title}",
             f"- domain: {task.domain}",
             f"- workflow_kind: {task.payload.get('workflow_kind')}",
+            "",
+            "请描述你的具体需求或背景信息，我来帮你分析并制定方案。",
         ]
         event.set_result(MessageEventResult().message("\n".join(lines)).use_t2i(False))
 
