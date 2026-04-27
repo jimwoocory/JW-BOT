@@ -1,0 +1,139 @@
+═══════════════════════════════════════════════════════════════════════════════
+  HERMES 知识库查询 - 快速参考卡
+═══════════════════════════════════════════════════════════════════════════════
+
+📍 HERMES SKILL 位置
+└─ /Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base/
+
+───────────────────────────────────────────────────────────────────────────────
+🚀 快速验证 (文件索引完成后)
+───────────────────────────────────────────────────────────────────────────────
+
+1️⃣  检查知识库是否有内容
+   $ python3.11 -c "
+import asyncio, hashlib, aiohttp
+async def check():
+    async with aiohttp.ClientSession() as session:
+        resp = await session.post('http://localhost:6185/api/auth/login',
+            json={'username':'Dianchi.boss', 'password': hashlib.md5(b'D!anch!1983').hexdigest()})
+        token = (await resp.json())['data']['token']
+        resp = await session.get('http://localhost:6185/api/kb/list',
+            headers={'Authorization': f'Bearer {token}'})
+        for kb in (await resp.json())['data']['items']:
+            print(f'{kb[\"kb_name\"]:<15} {kb[\"doc_count\"]:>3} 文档')
+asyncio.run(check())
+"
+
+2️⃣  测试 Skill 查询
+   $ cd /Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base
+   $ python3 scripts/query_kb.py --query "五菱" --top-k 5
+
+3️⃣  启动 Hermes 并在其中提问
+   $ ./hermes-start.sh
+   # 在 Hermes 中询问：
+   > 五菱汽车的品牌规范是什么？
+   > 有营销视频脚本吗？
+
+───────────────────────────────────────────────────────────────────────────────
+📊 当前进度
+───────────────────────────────────────────────────────────────────────────────
+
+✅ 已完成:
+   - Hermes Skill 创建
+   - Python 查询脚本编写
+   - API 认证测试通过
+   - 配置修复（移除 exclude_dirs）
+   - 40 个 NAS 文件已准备索引
+
+⏳ 进行中:
+   - Watcher 文件索引 (监控: tail -f nas_sync/watcher.log)
+
+───────────────────────────────────────────────────────────────────────────────
+📚 文档
+───────────────────────────────────────────────────────────────────────────────
+
+系统架构说明
+   SYSTEM_ARCHITECTURE.md
+
+快速开始 & 故障排查
+   HERMES_KNOWLEDGE_BASE_QUICK_START.md
+
+项目完成总结
+   PROJECT_DELIVERY_SUMMARY.md
+
+Skill 完整文档
+   hermes-agent-temp/skills/productivity/astrbot-knowledge-base/SKILL.md
+
+───────────────────────────────────────────────────────────────────────────────
+🔧 Skill 查询命令
+───────────────────────────────────────────────────────────────────────────────
+
+# 查询所有知识库
+$ python3 scripts/query_kb.py --query "搜索内容"
+
+# 查询特定知识库
+$ python3 scripts/query_kb.py --query "搜索内容" --kb-name "品牌规范"
+
+# 返回更多结果 (默认5)
+$ python3 scripts/query_kb.py --query "搜索内容" --top-k 10
+
+# JSON 格式输出 (供 Hermes 解析)
+$ python3 scripts/query_kb.py --query "搜索内容" --json-output
+
+───────────────────────────────────────────────────────────────────────────────
+🎯 知识库
+───────────────────────────────────────────────────────────────────────────────
+
+1. 中台运营      (106d44aa-771b-4f6f-939c-14e274c3c952) → 中台运营项目/*
+2. 品宣运营      (084c0c08-52fe-471e-aab2-fb2f8477f45c) → 品宣运营项目/*
+3. 品牌规范      (e5d9756e-83ae-4663-be8f-46a70fb1a894) → 品牌规范/*
+4. 营销素材      (344196dd-25c6-4765-a161-e265f0e66565) → 营销素材/*
+
+───────────────────────────────────────────────────────────────────────────────
+💻 常用命令
+───────────────────────────────────────────────────────────────────────────────
+
+启动 Hermes
+   $ ./hermes-start.sh
+
+启动 AstrBot
+   $ uv run main.py
+
+查看 watcher 日志
+   $ tail -f nas_sync/watcher.log
+
+运行一次文件索引扫描
+   $ python3.11 nas_sync/watcher.py --once
+
+编辑 NAS 配置
+   $ nano nas_sync/config.yaml
+
+───────────────────────────────────────────────────────────────────────────────
+✨ 使用示例
+───────────────────────────────────────────────────────────────────────────────
+
+在 Hermes 中：
+   用户: "我们公司的品牌 Logo 规范是什么？"
+   Hermes: [自动调用 Skill] → 返回品牌规范知识库中的相关内容
+
+   用户: "有五菱汽车的营销视频脚本吗？"
+   Hermes: [自动调用 Skill] → 返回营销素材中的脚本
+
+───────────────────────────────────────────────────────────────────────────────
+🐛 常见问题
+───────────────────────────────────────────────────────────────────────────────
+
+问: 知识库为什么是空的？
+答: Watcher 正在索引文件。运行: tail -f nas_sync/watcher.log
+
+问: 怎样添加新文件？
+答: 放入 NAS 文件夹，运行: python3.11 nas_sync/watcher.py --once
+
+问: Skill 出错怎么办？
+答: 查看 HERMES_KNOWLEDGE_BASE_QUICK_START.md 的故障排查章节
+
+───────────────────────────────────────────────────────────────────────────────
+
+📞 更多信息见: PROJECT_DELIVERY_SUMMARY.md
+
+═══════════════════════════════════════════════════════════════════════════════

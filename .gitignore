@@ -59,6 +59,7 @@ astrbot.lock
 # Other
 chroma
 venv/*
+venv_p312
 pytest.ini
 AGENTS.md
 IFLOW.md

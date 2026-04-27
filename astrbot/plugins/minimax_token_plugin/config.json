@@ -1,0 +1,9 @@
+{
+  "api_key": "请在此处填写你的 MiniMax API Key（中转服务商提供）",
+  "api_key_suffix": "lVJnPr",
+  "credit_threshold": 1000,
+  "weekly_limit": 5000,
+  "check_interval_hours": 6,
+  "api_base_url": "https://minimax.a7m.com.cn",
+  "balance_endpoint": "/v1/api/balance"
+}

@@ -1,0 +1,17 @@
+{
+  "default_model": "aihubmix/gpt-5.4-nano",
+  "default_workspace": "/Users/dianchi/JW-Bot/hermes-workspace",
+  "onboarding_completed": false,
+  "send_key": "enter",
+  "show_token_usage": false,
+  "show_cli_sessions": false,
+  "sync_to_insights": false,
+  "check_for_updates": true,
+  "theme": "light",
+  "language": "zh",
+  "bot_name": "Hermes",
+  "sound_enabled": false,
+  "notifications_enabled": false,
+  "bubble_layout": false,
+  "password_hash": null
+}

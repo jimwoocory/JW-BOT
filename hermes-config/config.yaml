@@ -151,3 +151,28 @@ platforms:
           deliver: webhook_response
           deliver_extra:
             response_url: http://localhost:8645/hermes_response
+        astrbot_task:
+          secret: astrbot_hermes_bridge_secret_c73fd328c383365f
+          prompt: '你正在处理 AstrBot 派发的工作流任务。
+
+
+            任务信息：
+
+            - 任务 ID：{task_id}
+
+            - 工作流类型：{workflow_kind}
+
+
+            用户需求：
+
+            {brief}
+
+
+            请完整执行这个任务，生成详细的工作方案或执行结果。使用你的工具和知识库（如有配置）。
+
+            完成后直接输出结果内容，不需要说明这是任务回复。
+
+            '
+          deliver: webhook_response
+          deliver_extra:
+            response_url: http://localhost:8645/task_result

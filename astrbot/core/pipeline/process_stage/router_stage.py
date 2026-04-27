@@ -5,6 +5,8 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
+import aiohttp
+
 from astrbot.core import logger
 from astrbot.core.harness import create_workflow_request
 from astrbot.core.message.message_event_result import MessageEventResult
@@ -115,18 +117,63 @@ class RouterStage:
                 message_text=event.message_str,
             ),
         )
-        lines = [
-            "Router 已识别为任务请求，并创建了 Harness 任务：",
-            f"- task_id: {task.task_id}",
-            f"- title: {task.title}",
-            f"- workflow_kind: {task.payload.get('workflow_kind')}",
-            f"- confidence: {intent.confidence:.2f}",
-        ]
+
+        # 派发给 Hermes 执行（方案 C）
+        await self._dispatch_to_hermes(task, intent, event)
+
         event.set_result(
-            MessageEventResult().message("\n".join(lines)).use_t2i(False).stop_event(),
+            MessageEventResult()
+            .message(f"✅ 任务已提交（#{task.task_id[:8]}），Hermes 正在处理，完成后我会通知你。")
+            .use_t2i(False)
+            .stop_event(),
         )
         event.should_call_llm(True)
         return True
+
+    async def _dispatch_to_hermes(self, task: Any, intent: Intent, event: AstrMessageEvent) -> None:
+        """将 Harness 任务异步派发给 Hermes 执行（方案 C）。"""
+        cfg = self.ctx.plugin_manager.context.get_config()
+        hcfg = cfg.get("hermes_bridge", {}) if cfg else {}
+        task_webhook_url: str = hcfg.get(
+            "task_webhook_url", "http://localhost:8644/webhooks/astrbot_task"
+        )
+
+        cognitive_context: dict[str, Any] = {}
+        if hasattr(task, "payload") and isinstance(task.payload, dict):
+            cognitive_context = task.payload.get("cognitive_context", {})
+
+        payload = {
+            "task_id": task.task_id,
+            "workflow_kind": intent.workflow_kind,
+            "brief": event.message_str.strip(),
+            "session_id": event.unified_msg_origin,
+            "unified_msg_origin": event.unified_msg_origin,
+            "cognitive_context": cognitive_context,
+        }
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    task_webhook_url,
+                    json=payload,
+                    headers={
+                        "Content-Type": "application/json",
+                        "X-Webhook-Event": "harness_task",
+                        "X-Task-ID": task.task_id,
+                    },
+                    timeout=aiohttp.ClientTimeout(total=10),
+                ) as resp:
+                    if resp.status in (200, 201, 202):
+                        logger.info(
+                            "[RouterStage] 任务 %s 已派发给 Hermes（%s）",
+                            task.task_id, task_webhook_url,
+                        )
+                    else:
+                        logger.warning(
+                            "[RouterStage] Hermes 派发失败 HTTP %s: %s",
+                            resp.status, await resp.text(),
+                        )
+        except Exception as exc:
+            logger.warning("[RouterStage] Hermes 派发异常（任务仍已创建）：%s", exc)
 
     async def _handle_skill_intent(
         self,
