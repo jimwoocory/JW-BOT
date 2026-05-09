@@ -69,8 +69,10 @@ def build_workflow_plan(
 ) -> HarnessWorkflowPlan:
     template = _WORKFLOW_TEMPLATES[workflow_kind]
     cleaned_brief = brief.strip()
-    title = f"{template['title_prefix']} | {cleaned_brief}" if cleaned_brief else str(
-        template["title_prefix"]
+    title = (
+        f"{template['title_prefix']} | {cleaned_brief}"
+        if cleaned_brief
+        else str(template["title_prefix"])
     )
     payload = {
         "source": source,

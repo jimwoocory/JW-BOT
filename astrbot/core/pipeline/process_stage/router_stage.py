@@ -9,6 +9,7 @@ import aiohttp
 
 from astrbot.core import logger
 from astrbot.core.harness import create_workflow_request
+from astrbot.core.harness.satisfaction import SatisfactionDetector, SatisfactionSignal
 from astrbot.core.message.message_event_result import MessageEventResult
 from astrbot.core.pipeline.context import PipelineContext
 from astrbot.core.platform.astr_message_event import AstrMessageEvent
@@ -24,6 +25,7 @@ class RouterStage:
     def __init__(self) -> None:
         self.ctx: PipelineContext | None = None
         self.router: IntentRouter | None = None
+        self._satisfaction_detector = SatisfactionDetector()
 
     async def initialize(self, ctx: PipelineContext) -> None:
         self.ctx = ctx
@@ -40,6 +42,11 @@ class RouterStage:
         if event.get_extra("activated_handlers", []):
             return False
 
+        # Check dissatisfaction before normal intent routing so an active task can escalate.
+        if await self._check_hermes_escalation(event):
+            return True
+
+        # Fall back to normal intent routing.
         intent = await self.router.classify(
             event.message_str,
             self._build_context(event),
@@ -100,6 +107,7 @@ class RouterStage:
     async def _handle_task_intent(
         self, event: AstrMessageEvent, intent: Intent
     ) -> bool:
+        """Create a Harness task and let the normal AstrBot LLM answer first."""
         plugin_context = self.ctx.plugin_manager.context
         engine = plugin_context.harness_engine
         if engine is None or intent.workflow_kind is None:
@@ -117,20 +125,140 @@ class RouterStage:
                 message_text=event.message_str,
             ),
         )
+        logger.info(
+            "[RouterStage] Harness 任务已创建（#%s），交由 LLM 先行处理，"
+            "如员工不满意将升级至 Hermes。",
+            task.task_id[:8],
+        )
+        # Do not intercept the event; the normal AstrBot LLM should answer first.
+        return False
 
-        # 派发给 Hermes 执行（方案 C）
+    async def _check_hermes_escalation(self, event: AstrMessageEvent) -> bool:
+        """Escalate dissatisfied follow-up messages to Hermes when appropriate."""
+        signal = self._satisfaction_detector.detect(event.message_str)
+        if not signal.dissatisfied:
+            return False
+
+        # Explicit Hermes requests and high-confidence dissatisfaction can create a task.
+        if signal.is_explicit_hermes_request or signal.confidence >= 0.88:
+            task = await self._find_latest_active_task(event)
+            return await self._handle_hermes_escalation(event, signal, task)
+
+        # Medium-confidence dissatisfaction only escalates when a task is already active.
+        if signal.confidence >= 0.65:
+            task = await self._find_latest_active_task(event)
+            if task is not None:
+                return await self._handle_hermes_escalation(event, signal, task)
+
+        return False
+
+    async def _find_latest_active_task(self, event: AstrMessageEvent) -> Any:
+        """Find the latest active Harness task, preferring grey-test topics."""
+        plugin_context = self.ctx.plugin_manager.context
+        engine = plugin_context.harness_engine
+        if engine is None:
+            return None
+        try:
+            tasks = await engine.store.list_tasks_for_session(
+                event.unified_msg_origin,
+                limit=10,
+                statuses=("pending", "in_progress", "blocked", "review_required"),
+            )
+            for task in tasks:
+                if (
+                    hasattr(task, "payload")
+                    and isinstance(task.payload, dict)
+                    and task.payload.get("source") == "grey_topic"
+                ):
+                    return task
+            return tasks[0] if tasks else None
+        except Exception as exc:
+            logger.debug("[RouterStage] 查询活跃任务失败：%s", exc)
+            return None
+
+    async def _handle_hermes_escalation(
+        self,
+        event: AstrMessageEvent,
+        signal: SatisfactionSignal,
+        task: Any = None,
+    ) -> bool:
+        """Dispatch an active or newly created task to Hermes for deep work."""
+        plugin_context = self.ctx.plugin_manager.context
+        engine = plugin_context.harness_engine
+
+        if task is None and engine is not None:
+            conversation_id = await self._get_or_create_current_conversation_id(event)
+            task = await engine.create_task(
+                create_workflow_request(
+                    workflow_kind="project_followup",
+                    brief=event.message_str.strip(),
+                    conversation_id=conversation_id,
+                    platform_id=event.get_platform_id(),
+                    session_id=event.unified_msg_origin,
+                    source="satisfaction_escalation",
+                    message_text=event.message_str,
+                )
+            )
+
+        if task is None:
+            logger.warning("[RouterStage] Hermes 升级失败：无法获取或创建任务")
+            return False
+
+        # Mark as in_progress so the LLM response hook does not complete it.
+        if engine is not None:
+            try:
+                await engine.mark_in_progress(task.task_id, note="dispatched_to_hermes")
+            except Exception as exc:
+                logger.debug(
+                    "[RouterStage] mark_in_progress 失败（不阻断派发）：%s", exc
+                )
+
+        # Build a lightweight intent for the Hermes dispatch payload.
+        workflow_kind = (
+            task.payload.get("workflow_kind", "project_followup")
+            if hasattr(task, "payload") and isinstance(task.payload, dict)
+            else "project_followup"
+        )
+        intent = Intent(
+            category="task",
+            intent_type="hermes_escalation",
+            confidence=signal.confidence,
+            workflow_kind=workflow_kind,
+        )
+
         await self._dispatch_to_hermes(task, intent, event)
 
+        if (
+            hasattr(task, "payload")
+            and isinstance(task.payload, dict)
+            and task.payload.get("source") == "grey_topic"
+        ):
+            reply_msg = (
+                f"收到，已把当前灰度话题 #{task.task_id[:8]} 交给 Hermes 后台深挖，"
+                "结果出来后会发回群里继续讨论。"
+            )
+        else:
+            reply_msg = (
+                "好的，已交给 Hermes 深度处理，完成后我会把结果发给你。"
+                if signal.is_explicit_hermes_request
+                else "收到，已安排 Hermes 对这个问题深入研究，结果出来后会通知你。"
+            )
         event.set_result(
-            MessageEventResult()
-            .message(f"✅ 任务已提交（#{task.task_id[:8]}），Hermes 正在处理，完成后我会通知你。")
-            .use_t2i(False)
-            .stop_event(),
+            MessageEventResult().message(reply_msg).use_t2i(False).stop_event()
         )
-        event.should_call_llm(True)
+
+        logger.info(
+            "[RouterStage] Hermes 升级成功：task=%s, session=%s, reason=%s, confidence=%.2f",
+            task.task_id[:8],
+            event.unified_msg_origin,
+            signal.reason,
+            signal.confidence,
+        )
         return True
 
-    async def _dispatch_to_hermes(self, task: Any, intent: Intent, event: AstrMessageEvent) -> None:
+    async def _dispatch_to_hermes(
+        self, task: Any, intent: Intent, event: AstrMessageEvent
+    ) -> None:
         """将 Harness 任务异步派发给 Hermes 执行（方案 C）。"""
         cfg = self.ctx.plugin_manager.context.get_config()
         hcfg = cfg.get("hermes_bridge", {}) if cfg else {}
@@ -139,15 +267,26 @@ class RouterStage:
         )
 
         cognitive_context: dict[str, Any] = {}
+        brief = event.message_str.strip()
         if hasattr(task, "payload") and isinstance(task.payload, dict):
             cognitive_context = task.payload.get("cognitive_context", {})
+            if task.payload.get("source") == "grey_topic":
+                brief = str(task.payload.get("brief") or task.title or brief)
+                cognitive_context = dict(cognitive_context or {})
+                cognitive_context["grey_topic"] = await self._build_grey_topic_context(
+                    task,
+                    event,
+                )
 
         payload = {
             "task_id": task.task_id,
             "workflow_kind": intent.workflow_kind,
-            "brief": event.message_str.strip(),
+            "brief": brief,
             "session_id": event.unified_msg_origin,
             "unified_msg_origin": event.unified_msg_origin,
+            "platform_id": event.get_platform_id(),
+            "sender_id": event.get_sender_id(),
+            "trigger_message": event.message_str,
             "cognitive_context": cognitive_context,
         }
         try:
@@ -165,15 +304,46 @@ class RouterStage:
                     if resp.status in (200, 201, 202):
                         logger.info(
                             "[RouterStage] 任务 %s 已派发给 Hermes（%s）",
-                            task.task_id, task_webhook_url,
+                            task.task_id,
+                            task_webhook_url,
                         )
                     else:
                         logger.warning(
                             "[RouterStage] Hermes 派发失败 HTTP %s: %s",
-                            resp.status, await resp.text(),
+                            resp.status,
+                            await resp.text(),
                         )
         except Exception as exc:
             logger.warning("[RouterStage] Hermes 派发异常（任务仍已创建）：%s", exc)
+
+    async def _build_grey_topic_context(
+        self,
+        task: Any,
+        event: AstrMessageEvent,
+    ) -> dict[str, Any]:
+        discussion: list[dict[str, Any]] = []
+        try:
+            events = await self.ctx.plugin_manager.context.harness_store.list_events(
+                task.task_id,
+            )
+            discussion = [
+                item.payload
+                for item in events
+                if item.event_type == "topic_discussion_message"
+            ][-30:]
+        except Exception as exc:
+            logger.debug("[RouterStage] 读取灰度话题讨论失败：%s", exc)
+
+        return {
+            "topic_id": task.task_id,
+            "title": getattr(task, "title", ""),
+            "brief": task.payload.get("brief", "")
+            if isinstance(task.payload, dict)
+            else "",
+            "status": getattr(task, "status", ""),
+            "trigger_message": event.message_str,
+            "discussion": discussion,
+        }
 
     async def _handle_skill_intent(
         self,

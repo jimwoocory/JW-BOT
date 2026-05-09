@@ -184,10 +184,10 @@ cat astrbot/data/hermes_bridge_sessions.json
 
 ## 相关文件
 
-- 插件代码：`/Users/dianchi/JW-Bot/astrbot/plugins/hermes_bridge/__init__.py`
-- 会话文件：`/Users/dianchi/JW-Bot/astrbot/data/hermes_bridge_sessions.json`
+- 插件代码：`/Users/dianchi/DC-Agent/astrbot/plugins/hermes_bridge/__init__.py`
+- 会话文件：`/Users/dianchi/DC-Agent/astrbot/data/hermes_bridge_sessions.json`
 - Gateway 代码：`/Users/dianchi/.hermes/hermes-agent/gateway/run.py`
-- 会话数据库：`/Users/dianchi/JW-Bot/hermes-config/state.db`
+- 会话数据库：`/Users/dianchi/DC-Agent/hermes-config/state.db`
 
 ## 联系与反馈
 

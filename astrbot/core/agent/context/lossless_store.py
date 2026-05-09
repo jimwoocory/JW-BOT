@@ -155,7 +155,9 @@ class LosslessContextStore:
             new_messages = messages[existing_count:]
 
             async with aiosqlite.connect(self.db_path) as db:
-                for offset, message in enumerate(new_messages, start=existing_count + 1):
+                for offset, message in enumerate(
+                    new_messages, start=existing_count + 1
+                ):
                     payload = json.dumps(message, ensure_ascii=False, sort_keys=True)
                     await db.execute(
                         """
@@ -324,7 +326,9 @@ class LosslessContextStore:
             )
             row = await cursor.fetchone()
 
-        total_items = row["total_items"] if row and row["total_items"] is not None else 0
+        total_items = (
+            row["total_items"] if row and row["total_items"] is not None else 0
+        )
         raw_message_items = (
             row["raw_message_items"]
             if row and row["raw_message_items"] is not None

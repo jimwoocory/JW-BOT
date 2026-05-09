@@ -52,7 +52,9 @@ class HarnessCommands:
     async def task_new(self, event: AstrMessageEvent, title: str = "") -> None:
         if not title.strip():
             event.set_result(
-                MessageEventResult().message("请输入任务标题。用法: /task new 任务标题"),
+                MessageEventResult().message(
+                    "请输入任务标题。用法: /task new 任务标题"
+                ),
             )
             return
 
@@ -78,13 +80,15 @@ class HarnessCommands:
             )
         )
         event.set_result(
-            MessageEventResult().message(
+            MessageEventResult()
+            .message(
                 "已创建 Harness 任务：\n"
                 f"- task_id: {task.task_id}\n"
                 f"- title: {task.title}\n"
                 f"- status: {task.status}\n"
                 f"- conversation_id: {task.conversation_id}",
-            ).use_t2i(False),
+            )
+            .use_t2i(False),
         )
 
     async def task_intake(
@@ -170,7 +174,9 @@ class HarnessCommands:
     async def task_show(self, event: AstrMessageEvent, task_id: str = "") -> None:
         if not task_id.strip():
             event.set_result(
-                MessageEventResult().message("请输入 task_id。用法: /task show task_id"),
+                MessageEventResult().message(
+                    "请输入 task_id。用法: /task show task_id"
+                ),
             )
             return
 
@@ -250,9 +256,11 @@ class HarnessCommands:
 
         updated = await engine.mark_in_progress(task.task_id, note=note.strip() or None)
         event.set_result(
-            MessageEventResult().message(
+            MessageEventResult()
+            .message(
                 f"任务已开始：{updated.task_id} | {updated.status} | {updated.title}",
-            ).use_t2i(False),
+            )
+            .use_t2i(False),
         )
 
     async def task_review(
@@ -285,9 +293,11 @@ class HarnessCommands:
             reviewer_note=reviewer_note.strip() or None,
         )
         event.set_result(
-            MessageEventResult().message(
+            MessageEventResult()
+            .message(
                 f"任务已进入审查：{updated.task_id} | {updated.status} | {updated.title}",
-            ).use_t2i(False),
+            )
+            .use_t2i(False),
         )
 
     async def task_done(
@@ -346,22 +356,26 @@ class HarnessCommands:
                     result=result,
                 )
                 event.set_result(
-                    MessageEventResult().message(
+                    MessageEventResult()
+                    .message(
                         f"任务结果已提交审查：{updated.task_id} | {updated.status} | {updated.title}"
                         + (
                             f"\n缺少字段: {', '.join(validation.missing_outputs)}"
                             if validation.missing_outputs
                             else ""
                         ),
-                    ).use_t2i(False),
+                    )
+                    .use_t2i(False),
                 )
                 return
 
         updated = await engine.complete_task(task.task_id, result=result or None)
         event.set_result(
-            MessageEventResult().message(
+            MessageEventResult()
+            .message(
                 f"任务已完成：{updated.task_id} | {updated.status} | {updated.title}",
-            ).use_t2i(False),
+            )
+            .use_t2i(False),
         )
 
     async def task_fail(
@@ -396,9 +410,11 @@ class HarnessCommands:
 
         updated = await engine.fail_task(task.task_id, reason=reason.strip())
         event.set_result(
-            MessageEventResult().message(
+            MessageEventResult()
+            .message(
                 f"任务已标记失败：{updated.task_id} | {updated.status} | {updated.title}",
-            ).use_t2i(False),
+            )
+            .use_t2i(False),
         )
 
     async def task_approve(
@@ -430,9 +446,11 @@ class HarnessCommands:
             note=note.strip(),
         )
         event.set_result(
-            MessageEventResult().message(
+            MessageEventResult()
+            .message(
                 f"任务已审批通过：{task.task_id} | reviewer={review.reviewer_id}",
-            ).use_t2i(False),
+            )
+            .use_t2i(False),
         )
 
     async def task_reject(
@@ -467,7 +485,9 @@ class HarnessCommands:
             note=note.strip(),
         )
         event.set_result(
-            MessageEventResult().message(
+            MessageEventResult()
+            .message(
                 f"任务已驳回：{task.task_id} | reviewer={review.reviewer_id}",
-            ).use_t2i(False),
+            )
+            .use_t2i(False),
         )

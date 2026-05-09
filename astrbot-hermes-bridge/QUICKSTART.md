@@ -9,7 +9,7 @@
 ### 方法 1：自动配置（推荐）
 
 ```bash
-cd /Users/dianchi/JW-Bot/astrbot-hermes-bridge
+cd /Users/dianchi/DC-Agent/astrbot-hermes-bridge
 chmod +x setup.sh
 ./setup.sh
 ```
@@ -48,8 +48,8 @@ gateway:
 #### 2. 复制插件到 AstrBot
 
 ```bash
-cp /Users/dianchi/JW-Bot/astrbot-hermes-bridge/hermes_bridge.py \
-   /Users/dianchi/JW-Bot/astrbot/plugins/
+cp /Users/dianchi/DC-Agent/astrbot-hermes-bridge/hermes_bridge.py \
+   /Users/dianchi/DC-Agent/astrbot/plugins/
 ```
 
 #### 3. 配置 AstrBot
@@ -71,14 +71,14 @@ cp /Users/dianchi/JW-Bot/astrbot-hermes-bridge/hermes_bridge.py \
 ### 1. 启动 Hermes Gateway
 
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 ./hermes-start.sh gateway
 ```
 
 ### 2. 启动 AstrBot
 
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 uv run main.py
 ```
 
@@ -106,12 +106,12 @@ curl -X POST http://localhost:8644/webhooks/astrbot_qq \
 
 **Hermes 日志**：
 ```bash
-tail -f /Users/dianchi/JW-Bot/hermes-agent-temp/logs/gateway.log
+tail -f /Users/dianchi/DC-Agent/hermes-agent-temp/logs/gateway.log
 ```
 
 **AstrBot 日志**：
 ```bash
-tail -f /Users/dianchi/JW-Bot/logs/astrbot.log
+tail -f /Users/dianchi/DC-Agent/logs/astrbot.log
 ```
 
 ## 🔧 故障排查

@@ -22,9 +22,7 @@ class Route:
         def _add_rule(path, method, func) -> None:
             # 统一添加 /api 前缀
             full_path = f"/api{path}"
-            endpoint = (
-                f"{self.__class__.__name__}:{func.__name__}:{method}:{full_path}"
-            )
+            endpoint = f"{self.__class__.__name__}:{func.__name__}:{method}:{full_path}"
             self.app.add_url_rule(
                 full_path,
                 endpoint=endpoint,

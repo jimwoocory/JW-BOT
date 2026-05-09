@@ -75,7 +75,9 @@ class HarnessCognitionProvider:
             )
             or {}
         )
-        kb_config = await sp.session_get(request.session_id, "kb_config", default={}) or {}
+        kb_config = (
+            await sp.session_get(request.session_id, "kb_config", default={}) or {}
+        )
 
         persona_id = session_service_config.get("persona_id")
         persona = self.persona_manager.get_persona_v3_by_id(persona_id)
@@ -108,7 +110,9 @@ class HarnessCognitionProvider:
 
         recent_memories: list[dict[str, Any]] = []
         if self.memory_store is not None:
-            memories = await self.memory_store.list_for_session(request.session_id, limit=5)
+            memories = await self.memory_store.list_for_session(
+                request.session_id, limit=5
+            )
             for memory in memories:
                 recent_memories.append(
                     {

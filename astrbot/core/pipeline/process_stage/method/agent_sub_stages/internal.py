@@ -522,7 +522,9 @@ class InternalAgentSubStage(Stage):
                 task.task_id,
                 result={
                     "summary": summary,
-                    "response_preview": (final_resp.completion_text or "").strip()[:500],
+                    "response_preview": (final_resp.completion_text or "").strip()[
+                        :500
+                    ],
                     "source": "internal_agent",
                 },
             )

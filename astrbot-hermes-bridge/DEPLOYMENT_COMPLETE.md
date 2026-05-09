@@ -5,7 +5,7 @@
 ### ✅ 已完成
 
 1. **Hermes Webhook 配置** ✓
-   - 配置文件：`/Users/dianchi/JW-Bot/hermes-config/config.yaml`
+   - 配置文件：`/Users/dianchi/DC-Agent/hermes-config/config.yaml`
    - Webhook 端口：8644
    - HMAC 密钥：`astrbot_hermes_bridge_secret_c73fd328c383365f`
    - 路由名称：`astrbot_qq`
@@ -20,7 +20,7 @@
    ```
 
 3. **AstrBot 插件已安装** ✓
-   - 插件文件：`/Users/dianchi/JW-Bot/astrbot/plugins/hermes_bridge/__init__.py`
+   - 插件文件：`/Users/dianchi/DC-Agent/astrbot/plugins/hermes_bridge/__init__.py`
    - 响应服务器端口：8645
 
 ## 📊 架构图
@@ -55,7 +55,7 @@ QQ 用户
 
 ### 1. Hermes Webhook 配置
 
-位置：`/Users/dianchi/JW-Bot/hermes-config/config.yaml`
+位置：`/Users/dianchi/DC-Agent/hermes-config/config.yaml`
 
 ```yaml
 platforms:
@@ -89,7 +89,7 @@ platforms:
 
 ### 2. AstrBot 配置
 
-位置：`/Users/dianchi/JW-Bot/astrbot-hermes-bridge/astrbot_config.json`
+位置：`/Users/dianchi/DC-Agent/astrbot-hermes-bridge/astrbot_config.json`
 
 ```json
 {
@@ -106,7 +106,7 @@ platforms:
 ### 1. 启动 Hermes Gateway（已完成）
 
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 ./hermes-start.sh gateway
 ```
 
@@ -115,7 +115,7 @@ cd /Users/dianchi/JW-Bot
 ### 2. 启动 AstrBot
 
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 uv run main.py
 ```
 
@@ -152,12 +152,12 @@ curl -X POST http://localhost:8644/webhooks/astrbot_qq \
 
 **Hermes 日志**：
 ```bash
-tail -f /Users/dianchi/JW-Bot/hermes-agent-temp/logs/gateway.log
+tail -f /Users/dianchi/DC-Agent/hermes-agent-temp/logs/gateway.log
 ```
 
 **AstrBot 日志**：
 ```bash
-tail -f /Users/dianchi/JW-Bot/logs/astrbot.log
+tail -f /Users/dianchi/DC-Agent/logs/astrbot.log
 ```
 
 ## 🔐 安全信息
@@ -195,7 +195,7 @@ platform:
     ws_reverse_port: 6199
 ```
 
-参考文档：`/Users/dianchi/JW-Bot/docs/zh/platform/aiocqhttp.md`
+参考文档：`/Users/dianchi/DC-Agent/docs/zh/platform/aiocqhttp.md`
 
 ### 2. 安装 NapCat 或 go-cqhttp
 
@@ -204,7 +204,7 @@ platform:
 ### 3. 重启 AstrBot
 
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 uv run main.py
 ```
 
@@ -223,7 +223,7 @@ uv run main.py
 lsof -i :8644
 
 # 查看 Hermes 日志
-tail -f /Users/dianchi/JW-Bot/hermes-agent-temp/logs/gateway.log
+tail -f /Users/dianchi/DC-Agent/hermes-agent-temp/logs/gateway.log
 ```
 
 ### 问题 2：HMAC 验证失败
@@ -231,10 +231,10 @@ tail -f /Users/dianchi/JW-Bot/hermes-agent-temp/logs/gateway.log
 确保密钥一致：
 ```bash
 # Hermes 配置
-grep secret /Users/dianchi/JW-Bot/hermes-config/config.yaml
+grep secret /Users/dianchi/DC-Agent/hermes-config/config.yaml
 
 # AstrBot 插件配置
-grep secret /Users/dianchi/JW-Bot/astrbot/plugins/hermes_bridge/__init__.py
+grep secret /Users/dianchi/DC-Agent/astrbot/plugins/hermes_bridge/__init__.py
 ```
 
 ### 问题 3：消息未转发
@@ -242,7 +242,7 @@ grep secret /Users/dianchi/JW-Bot/astrbot/plugins/hermes_bridge/__init__.py
 检查 AstrBot 插件是否加载：
 ```bash
 # 查看 AstrBot 启动日志
-grep "HermesBridge" /Users/dianchi/JW-Bot/logs/astrbot.log
+grep "HermesBridge" /Users/dianchi/DC-Agent/logs/astrbot.log
 ```
 
 ## 📊 性能优化
@@ -282,9 +282,9 @@ grep "HermesBridge" /Users/dianchi/JW-Bot/logs/astrbot.log
 ## 📚 相关文档
 
 - [Hermes Webhook 官方文档](https://hermes-agent.nousresearch.com/docs/messaging/webhooks)
-- [AstrBot QQBot 文档](/Users/dianchi/JW-Bot/docs/zh/platform/aiocqhttp.md)
-- [Hermes IM 通讯协议详解](/Users/dianchi/JW-Bot/hermes-config/Hermes_IM 通讯协议详解.md)
-- [双模型配置](/Users/dianchi/JW-Bot/hermes-config/双模型配置完成.md)
+- [AstrBot QQBot 文档](/Users/dianchi/DC-Agent/docs/zh/platform/aiocqhttp.md)
+- [Hermes IM 通讯协议详解](/Users/dianchi/DC-Agent/hermes-config/Hermes_IM 通讯协议详解.md)
+- [双模型配置](/Users/dianchi/DC-Agent/hermes-config/双模型配置完成.md)
 
 ---
 

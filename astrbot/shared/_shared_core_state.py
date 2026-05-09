@@ -92,7 +92,10 @@ class TaskManager:
             tasks = [t for t in tasks if t.status == status]
         if task_type:
             tasks = [t for t in tasks if t.type == task_type]
-        return [deepcopy(task) for task in sorted(tasks, key=lambda t: t.created_at, reverse=True)]
+        return [
+            deepcopy(task)
+            for task in sorted(tasks, key=lambda t: t.created_at, reverse=True)
+        ]
 
     def get_task(self, task_id):
         task = self.tasks.get(task_id)

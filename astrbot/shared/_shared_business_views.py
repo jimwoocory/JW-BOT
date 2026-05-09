@@ -32,7 +32,7 @@ def strip_self_command_prefix(raw_text: str, command_name: str) -> str:
         if text == prefix:
             return ""
         if text.startswith(prefix + " "):
-            return text[len(prefix):].strip()
+            return text[len(prefix) :].strip()
     return text
 
 
@@ -109,7 +109,9 @@ def extract_relevant_lines(text: str, topic: str, max_items: int = 4) -> list[st
                 items.append(line)
             continue
 
-        if re.search(r"(20\d{2}|昨日|今日|今天|发布|宣布|销量|上市|门店|交付|渠道|品牌)", line):
+        if re.search(
+            r"(20\d{2}|昨日|今日|今天|发布|宣布|销量|上市|门店|交付|渠道|品牌)", line
+        ):
             if line not in generic_items:
                 generic_items.append(line)
 

@@ -114,14 +114,31 @@ class KnowledgeBaseQueryTool(FunctionTool[AstrAgentContext]):
         query = kwargs.get("query", "")
         if not query:
             return "error: Query parameter is empty."
-        result = await retrieve_knowledge_base(
-            query=query,
-            umo=context.context.event.unified_msg_origin,
-            context=context.context.context,
-        )
-        if not result:
-            return "No relevant knowledge found."
-        return result
+
+        try:
+            # 尝试从事件中获取 UMO
+            event = context.context.event
+            if not event:
+                return "error: Missing event context."
+
+            umo = getattr(event, "unified_msg_origin", None)
+            if not umo:
+                return "error: Could not determine unified message origin."
+
+            result = await retrieve_knowledge_base(
+                query=query,
+                umo=umo,
+                context=context.context.context,
+            )
+            if not result:
+                return "No relevant knowledge found."
+            return result
+        except StopAsyncIteration:
+            logger.error(f"[知识库工具] 异步迭代器异常: {query}")
+            return "error: Knowledge base search iteration failed. Please try again."
+        except Exception as e:
+            logger.error(f"[知识库工具] 未知错误: {str(e)}")
+            return f"error: {str(e)}"
 
 
 __all__ = [

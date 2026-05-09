@@ -39,9 +39,7 @@ except ImportError:
 
 # User turn prefix used for the in-memory summary pair (fallback path).
 _SUMMARY_USER_PREFIX = "[Compact summary of earlier conversation]\n"
-_SUMMARY_ASSISTANT_ACK = (
-    "Acknowledged. I will use this compact summary together with the recent raw conversation."
-)
+_SUMMARY_ASSISTANT_ACK = "Acknowledged. I will use this compact summary together with the recent raw conversation."
 
 
 class LosslessSummaryCompressor:

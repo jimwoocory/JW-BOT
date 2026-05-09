@@ -36,7 +36,17 @@ class HarnessAstrBotBridge:
         "营销策划": ["营销", "推广", "传播", "campaign", "文案", "策划", "公关", "KOL"],
     }
     PLATFORM_HINTS = ["小红书", "抖音", "微博", "知乎", "B站", "视频号"]
-    COMPETITOR_HINTS = ["竞品", "对手", "友商", "品牌", "比亚迪", "特斯拉", "理想", "蔚来", "小鹏"]
+    COMPETITOR_HINTS = [
+        "竞品",
+        "对手",
+        "友商",
+        "品牌",
+        "比亚迪",
+        "特斯拉",
+        "理想",
+        "蔚来",
+        "小鹏",
+    ]
     CREATIVE_HINTS = [
         "点子",
         "方向",
@@ -152,10 +162,14 @@ class HarnessAstrBotBridge:
         self.knowledge_ingest = KnowledgeIngestService(DEFAULT_CONFIG)
         self.memory_store = MemoryStore()
         self.notification_center = NotificationCenter()
-        self.async_task_service = AsyncTaskService(self.engine, notifications=self.notification_center)
+        self.async_task_service = AsyncTaskService(
+            self.engine, notifications=self.notification_center
+        )
         self.scheduled_task_service = ScheduledTaskService()
         self.short_term_memory = ShortTermMemoryManager()
-        self.memory_compressor = MemoryCompressor(self.short_term_memory, self.memory_store)
+        self.memory_compressor = MemoryCompressor(
+            self.short_term_memory, self.memory_store
+        )
         self.memory_promotion = MemoryPromotionPolicy(self.memory_store)
         self.query_service = OperationalQueryService(
             task_store=self.engine.task_store,
@@ -190,7 +204,9 @@ class HarnessAstrBotBridge:
         """Pass through an LLMClient to the engine's executor."""
         self.engine.set_llm_client(client)
 
-    def start_file_ingest_from_path_text(self, file_path: str | None = None, event: Any = None) -> str:
+    def start_file_ingest_from_path_text(
+        self, file_path: str | None = None, event: Any = None
+    ) -> str:
         extracted_path, file_name = self._extract_uploaded_file(event)
         target_path = (file_path or extracted_path or "").strip()
         if not target_path:
@@ -217,7 +233,9 @@ class HarnessAstrBotBridge:
         }
         return self._build_file_category_prompt(payload)
 
-    def start_file_ingest_from_text(self, source_name: str, content: str, event: Any = None) -> str:
+    def start_file_ingest_from_text(
+        self, source_name: str, content: str, event: Any = None
+    ) -> str:
         payload = self.knowledge_ingest.stage_text(
             content,
             source_name=source_name,
@@ -246,11 +264,7 @@ class HarnessAstrBotBridge:
 
         reply = (reply_text or "").strip()
         if not reply:
-            return (
-                "【AstrBot📎】OC2 资料归档：\n"
-                "• 请输入当前步骤的选择或内容\n"
-                "[OK]"
-            )
+            return "【AstrBot📎】OC2 资料归档：\n• 请输入当前步骤的选择或内容\n[OK]"
 
         step = session.get("step", "category")
         if step == "category":
@@ -283,7 +297,9 @@ class HarnessAstrBotBridge:
     def get_file_search_text(self, query: str, limit: int = 10) -> str:
         keyword = (query or "").strip()
         lines = [f"【AstrBot📂】OC2 资料检索：{keyword or '全部'}"]
-        memories = self.memory_store.list_memories(limit=max(limit * 5, 50), source="file_ingest_auto")
+        memories = self.memory_store.list_memories(
+            limit=max(limit * 5, 50), source="file_ingest_auto"
+        )
         rows = []
         for memory in memories:
             meta = memory.metadata or {}
@@ -303,7 +319,8 @@ class HarnessAstrBotBridge:
             rows.append(
                 {
                     "source_name": meta.get("source_name", ""),
-                    "category_label": meta.get("category_label") or meta.get("category", ""),
+                    "category_label": meta.get("category_label")
+                    or meta.get("category", ""),
                     "brand": meta.get("brand", "general"),
                     "note": meta.get("note", ""),
                 }
@@ -394,7 +411,9 @@ class HarnessAstrBotBridge:
         if not is_harness_enabled():
             return "【AstrBot🔴】OC2 竞品简报：\n• 状态: OFFLINE ❌\n• 说明: Harness 当前已关闭\n[OK]"
 
-        competitor_result = await self.handle_command("mtoc_competitor", brand, event=event)
+        competitor_result = await self.handle_command(
+            "mtoc_competitor", brand, event=event
+        )
         news_result = await self.handle_command("mtoc_news", brand, event=event)
         competitor_text = self._result_to_text(competitor_result)
         news_text = self._result_to_text(news_result)
@@ -466,7 +485,9 @@ class HarnessAstrBotBridge:
         explicit_command_hint = self._build_explicit_command_hint(request_text)
         if explicit_command_hint:
             return explicit_command_hint
-        command_name, prompt, label, interval_minutes = self._infer_request_command(request_text)
+        command_name, prompt, label, interval_minutes = self._infer_request_command(
+            request_text
+        )
         result_use = self._detect_request_use(request_text, interval_minutes)
         if interval_minutes is not None:
             kind_map = {
@@ -481,7 +502,9 @@ class HarnessAstrBotBridge:
                 interval_minutes=interval_minutes,
             )
             execution_text = f"每日订阅（每 {interval_minutes} 分钟执行一次）"
-            command_text = f"/oc2_brief_schedule {workflow_kind} {prompt} {interval_minutes}"
+            command_text = (
+                f"/oc2_brief_schedule {workflow_kind} {prompt} {interval_minutes}"
+            )
         elif command_name == "oc2_competitor_brief":
             result_text = await self.get_competitor_brief_text(prompt, event=event)
             execution_text = "即时简报"
@@ -512,7 +535,9 @@ class HarnessAstrBotBridge:
             f"• 主题: {prompt}",
             f"• 执行方式: {execution_text}",
             f"• 结果用途: {result_use}",
-            f"• 转换命令: {command_text}" if interval_minutes is None else f"• 转换订阅: {command_text}",
+            f"• 转换命令: {command_text}"
+            if interval_minutes is None
+            else f"• 转换订阅: {command_text}",
             "[OK]",
             "",
             result_text,
@@ -549,7 +574,9 @@ class HarnessAstrBotBridge:
         ]
         lines_out.extend(f"• {line}" for line in preview)
         if len(slash_lines) > len(preview):
-            lines_out.append(f"• 其余 {len(slash_lines) - len(preview)} 条命令也请逐条发送")
+            lines_out.append(
+                f"• 其余 {len(slash_lines) - len(preview)} 条命令也请逐条发送"
+            )
         lines_out.append("[OK]")
         return "\n".join(lines_out)
 
@@ -599,7 +626,9 @@ class HarnessAstrBotBridge:
         if not is_harness_enabled():
             return "【AstrBot🔴】OC2 状态检查：\nJW-Claw Harness\n• 状态: OFFLINE ❌\n• 说明: Harness 当前已关闭\n[OK]"
         status = self.engine.get_status()
-        async_summary = self.dashboard_service.get_overview_snapshot(task_limit=5, memory_limit=5).async_summary
+        async_summary = self.dashboard_service.get_overview_snapshot(
+            task_limit=5, memory_limit=5
+        ).async_summary
         sc = async_summary.status_counts
         failed = sc.get("failed", 0)
         running = sc.get("running", 0)
@@ -646,7 +675,9 @@ class HarnessAstrBotBridge:
         lines.append(f"• 目标: {route['target'] or '无'}")
         lines.append(f"• 置信度: {route['confidence']}")
         if command_extract:
-            lines.append(f"• 命令解析: {command_extract[0]} | 参数: {command_extract[1] or ''}")
+            lines.append(
+                f"• 命令解析: {command_extract[0]} | 参数: {command_extract[1] or ''}"
+            )
         if route.get("metadata"):
             lines.append(f"• 元数据: {route['metadata']}")
         lines.append("[OK]")
@@ -656,25 +687,39 @@ class HarnessAstrBotBridge:
         if not is_harness_enabled():
             return "【AstrBot🔴】OC2 详细检查：\nJW-Claw Inspection\n• 状态: OFFLINE ❌\n• 说明: Harness 当前已关闭\n[OK]"
 
-        snapshot = self.dashboard_service.get_overview_snapshot(task_limit=task_limit, memory_limit=task_limit)
+        snapshot = self.dashboard_service.get_overview_snapshot(
+            task_limit=task_limit, memory_limit=task_limit
+        )
         inspection = snapshot.inspection_overview
         lines = ["【AstrBot🟢】OC2 详细检查：", "JW-Claw Inspection"]
         lines.append(f"• Replay 用例总数: {inspection.replay_total_cases}")
         if inspection.replay_domain_counts:
-            replay_text = ", ".join(f"{domain}:{count}" for domain, count in inspection.replay_domain_counts.items())
+            replay_text = ", ".join(
+                f"{domain}:{count}"
+                for domain, count in inspection.replay_domain_counts.items()
+            )
             lines.append(f"• Replay 域覆盖: {replay_text}")
         lines.append("近期任务")
         lines.append(f"• 最近任务数: {inspection.recent_task_total}")
         if inspection.recent_task_status_counts:
-            task_text = ", ".join(f"{status}:{count}" for status, count in inspection.recent_task_status_counts.items())
+            task_text = ", ".join(
+                f"{status}:{count}"
+                for status, count in inspection.recent_task_status_counts.items()
+            )
             lines.append(f"• 任务状态: {task_text}")
         lines.append("异步任务")
         lines.append(f"• 最近异步任务数: {inspection.recent_async_total}")
         if inspection.recent_async_status_counts:
-            async_text = ", ".join(f"{status}:{count}" for status, count in inspection.recent_async_status_counts.items())
+            async_text = ", ".join(
+                f"{status}:{count}"
+                for status, count in inspection.recent_async_status_counts.items()
+            )
             lines.append(f"• 异步状态: {async_text}")
         if inspection.recent_async_failure_counts:
-            failure_text = ", ".join(f"{kind}:{count}" for kind, count in inspection.recent_async_failure_counts.items())
+            failure_text = ", ".join(
+                f"{kind}:{count}"
+                for kind, count in inspection.recent_async_failure_counts.items()
+            )
             lines.append(f"• 异步失败分类: {failure_text}")
         if inspection.recent_async_history:
             lines.append("最近异步历史")
@@ -698,7 +743,9 @@ class HarnessAstrBotBridge:
         snapshot = self.dashboard_service.get_schedule_summary_snapshot(limit=limit)
         lines = ["【AstrBot🗓️】OC2 计划任务："]
         if snapshot.status_counts:
-            status_text = ", ".join(f"{k}:{v}" for k, v in snapshot.status_counts.items())
+            status_text = ", ".join(
+                f"{k}:{v}" for k, v in snapshot.status_counts.items()
+            )
             lines.append(f"• 状态统计: {status_text}")
         if not snapshot.items:
             lines.append("• 暂无计划任务")
@@ -728,7 +775,9 @@ class HarnessAstrBotBridge:
         lines.append("[OK]")
         return "\n".join(lines)
 
-    def create_schedule_text(self, command_name: str, prompt: str = "", interval_minutes: int = 60) -> str:
+    def create_schedule_text(
+        self, command_name: str, prompt: str = "", interval_minutes: int = 60
+    ) -> str:
         item = self.scheduled_task_service.create_schedule(
             command_name=command_name,
             prompt=prompt,
@@ -744,7 +793,9 @@ class HarnessAstrBotBridge:
             "[OK]"
         )
 
-    def create_brief_schedule_text(self, kind: str, topic: str, interval_minutes: int = 1440) -> str:
+    def create_brief_schedule_text(
+        self, kind: str, topic: str, interval_minutes: int = 1440
+    ) -> str:
         command_map = {
             "daily": "oc2_daily_brief",
             "competitor": "oc2_competitor_brief",
@@ -772,7 +823,9 @@ class HarnessAstrBotBridge:
             "[OK]"
         )
 
-    def get_async_job_summary_text(self, limit: int = 10, status: str | None = None) -> str:
+    def get_async_job_summary_text(
+        self, limit: int = 10, status: str | None = None
+    ) -> str:
         if not is_harness_enabled():
             return "【AstrBot🔴】OC2 异步任务：\n• 状态: OFFLINE ❌\n• 说明: Harness 当前已关闭\n[OK]"
 
@@ -783,10 +836,16 @@ class HarnessAstrBotBridge:
             except ValueError:
                 return "【AstrBot⚠️】OC2 异步任务：\n• 状态过滤无效\n• 可用值: queued, running, completed, failed, cancelled\n[OK]"
 
-        snapshot = self.dashboard_service.get_async_job_summary_snapshot(limit=limit, status=status_enum)
+        snapshot = self.dashboard_service.get_async_job_summary_snapshot(
+            limit=limit, status=status_enum
+        )
         lines = ["【AstrBot📋】OC2 异步任务："]
-        status_text = ", ".join(f"{label}:{count}" for label, count in snapshot.status_counts.items())
-        lines.append(f"• 状态统计: {status_text or 'queued:0, running:0, completed:0, failed:0'}")
+        status_text = ", ".join(
+            f"{label}:{count}" for label, count in snapshot.status_counts.items()
+        )
+        lines.append(
+            f"• 状态统计: {status_text or 'queued:0, running:0, completed:0, failed:0'}"
+        )
         if not snapshot.items:
             lines.append("• 暂无异步任务")
             lines.append(f"• 推荐下一步: {snapshot.next_step_hint}")
@@ -876,7 +935,9 @@ class HarnessAstrBotBridge:
     def get_task_summary_text(self, limit: int = 10) -> str:
         if not is_harness_enabled():
             return "【AstrBot🔴】OC2 任务列表：\n• 状态: OFFLINE ❌\n• 说明: Harness 当前已关闭\n[OK]"
-        snapshot = self.dashboard_service.get_workspace_snapshot(task_limit=limit, memory_limit=limit).task_summary
+        snapshot = self.dashboard_service.get_workspace_snapshot(
+            task_limit=limit, memory_limit=limit
+        ).task_summary
 
         lines = ["【AstrBot📋】OC2 任务列表："]
         if not snapshot.items:
@@ -924,10 +985,7 @@ class HarnessAstrBotBridge:
             lines.append(f"• 搜索: {query}")
         lines.append("上下文列表")
         for index, item in enumerate(snapshot.items, 1):
-            task_line = (
-                f"• {index}. [{item.domain}/{item.status}] "
-                f"{item.intent[:80]}"
-            )
+            task_line = f"• {index}. [{item.domain}/{item.status}] {item.intent[:80]}"
             lines.append(task_line)
             if item.followup:
                 lines.append(f"  • 跟进: {item.followup}")
@@ -939,7 +997,9 @@ class HarnessAstrBotBridge:
         lines.append("[OK]")
         return "\n".join(lines)
 
-    def get_project_dashboard_text(self, limit: int = 10, query: str | None = None) -> str:
+    def get_project_dashboard_text(
+        self, limit: int = 10, query: str | None = None
+    ) -> str:
         if not is_harness_enabled():
             return "【AstrBot🔴】OC2 客户项目上下文：\n• 状态: OFFLINE ❌\n• 说明: Harness 当前已关闭\n[OK]"
 
@@ -952,7 +1012,11 @@ class HarnessAstrBotBridge:
         if query:
             title = f"【AstrBot📁】OC2 客户项目上下文 - {query}："
         lines = [title]
-        if not (snapshot.matched_labels or snapshot.recent_tasks or snapshot.highlight_memories):
+        if not (
+            snapshot.matched_labels
+            or snapshot.recent_tasks
+            or snapshot.highlight_memories
+        ):
             lines.append("• 暂无客户项目上下文")
             lines.append("[OK]")
             return "\n".join(lines)
@@ -1002,7 +1066,8 @@ class HarnessAstrBotBridge:
 
         if snapshot.memory_status_counts:
             memory_status_text = ", ".join(
-                f"{label}({count})" for label, count in sorted(snapshot.memory_status_counts.items())
+                f"{label}({count})"
+                for label, count in sorted(snapshot.memory_status_counts.items())
             )
             lines.append(f"• 记忆状态: {memory_status_text}")
 
@@ -1103,37 +1168,107 @@ class HarnessAstrBotBridge:
             return "回退结果"
         return "任务结果"
 
-    def _infer_request_command(self, request_text: str) -> tuple[str, str, str, int | None]:
+    def _infer_request_command(
+        self, request_text: str
+    ) -> tuple[str, str, str, int | None]:
         lowered = request_text.lower()
         cleaned = request_text
         for token in self.NOISE_TOKENS:
             cleaned = cleaned.replace(token, " ")
         cleaned = " ".join(cleaned.split()).strip() or request_text.strip()
-        interval_minutes = 1440 if any(token in request_text for token in self.TRACKING_HINTS) else None
+        interval_minutes = (
+            1440
+            if any(token in request_text for token in self.TRACKING_HINTS)
+            else None
+        )
 
         for platform in self.PLATFORM_HINTS:
             if platform.lower() in lowered:
                 focus = self._extract_request_focus(cleaned, exclude=[platform])
                 prompt = platform if not focus else f"{platform} {focus}"
-                label = "平台热点订阅" if interval_minutes is not None else "平台热点简报"
+                label = (
+                    "平台热点订阅" if interval_minutes is not None else "平台热点简报"
+                )
                 return ("oc2_platform_brief", prompt, label, interval_minutes)
 
         if any(hint in request_text for hint in self.COMPETITOR_HINTS):
             prompt = cleaned
-            for hint in ["竞品", "对手", "友商", "品牌", "动态", "动向", "动静", "新动静", "情况", "观察", "看看", "分析", "日报", "简报", "线索", "内容", "有啥", "有什么", "有没有", "热度怎么样", "怎么样", "传播方向", "方向", "点子", "创意", "怎么做", "值得做", "值不值得做", "打法", "切入点", "值得关注", "关注点", "适不适合做", "能不能做"]:
+            for hint in [
+                "竞品",
+                "对手",
+                "友商",
+                "品牌",
+                "动态",
+                "动向",
+                "动静",
+                "新动静",
+                "情况",
+                "观察",
+                "看看",
+                "分析",
+                "日报",
+                "简报",
+                "线索",
+                "内容",
+                "有啥",
+                "有什么",
+                "有没有",
+                "热度怎么样",
+                "怎么样",
+                "传播方向",
+                "方向",
+                "点子",
+                "创意",
+                "怎么做",
+                "值得做",
+                "值不值得做",
+                "打法",
+                "切入点",
+                "值得关注",
+                "关注点",
+                "适不适合做",
+                "能不能做",
+            ]:
                 prompt = prompt.replace(hint, " ")
             prompt = " ".join(prompt.split()).strip() or cleaned
             label = "竞品订阅" if interval_minutes is not None else "竞品简报"
             return ("oc2_competitor_brief", prompt, label, interval_minutes)
 
         prompt = cleaned
-        for hint in ["新闻", "热点", "趋势", "方向", "动态", "动向", "动静", "新动静", "日报", "简报", "线索", "创意", "方案", "盘点", "汇总", "总结", "消息", "热度怎么样", "怎么样", "值得关注", "关注点", "适不适合做", "能不能做", "有没有"]:
+        for hint in [
+            "新闻",
+            "热点",
+            "趋势",
+            "方向",
+            "动态",
+            "动向",
+            "动静",
+            "新动静",
+            "日报",
+            "简报",
+            "线索",
+            "创意",
+            "方案",
+            "盘点",
+            "汇总",
+            "总结",
+            "消息",
+            "热度怎么样",
+            "怎么样",
+            "值得关注",
+            "关注点",
+            "适不适合做",
+            "能不能做",
+            "有没有",
+        ]:
             prompt = prompt.replace(hint, " ")
         prompt = " ".join(prompt.split()).strip() or cleaned
         label = "每日简报订阅" if interval_minutes is not None else "每日简报"
         return ("oc2_daily_brief", prompt, label, interval_minutes)
 
-    def _extract_request_focus(self, cleaned_text: str, exclude: list[str] | None = None) -> str:
+    def _extract_request_focus(
+        self, cleaned_text: str, exclude: list[str] | None = None
+    ) -> str:
         exclude = exclude or []
         lowered = cleaned_text.lower()
         for label, keywords in self.PROJECT_KEYWORDS.items():
@@ -1147,7 +1282,9 @@ class HarnessAstrBotBridge:
                 return hint
         return ""
 
-    def _detect_request_use(self, request_text: str, interval_minutes: int | None) -> str:
+    def _detect_request_use(
+        self, request_text: str, interval_minutes: int | None
+    ) -> str:
         if any(token in request_text for token in self.CREATIVE_HINTS):
             return "持续跟踪与创意线索" if interval_minutes is not None else "创意方向"
         return "持续跟踪" if interval_minutes is not None else "信息简报"
@@ -1200,8 +1337,12 @@ class HarnessAstrBotBridge:
             return None
 
         execution_mode = self.query_service.summarize_task_execution_mode(task)
-        memory_text = self.query_service.build_task_memory_content(task, category, execution_mode)
-        importance = self.query_service.calculate_task_memory_importance(category, execution_mode)
+        memory_text = self.query_service.build_task_memory_content(
+            task, category, execution_mode
+        )
+        importance = self.query_service.calculate_task_memory_importance(
+            category, execution_mode
+        )
         metadata = {
             "auto_captured": True,
             "from_task_id": task.id,
@@ -1264,7 +1405,9 @@ class HarnessAstrBotBridge:
         domain: str | None = "marketing",
         limit: int = 10,
     ) -> str:
-        result = self.memory_compressor.build_summary(query=query, domain=domain, limit=limit)
+        result = self.memory_compressor.build_summary(
+            query=query, domain=domain, limit=limit
+        )
         return result.summary_text
 
     def promote_short_term_memory(
@@ -1273,8 +1416,12 @@ class HarnessAstrBotBridge:
         domain: str | None = "marketing",
         limit: int = 10,
     ) -> str:
-        summary = self.memory_compressor.build_summary(query=query, domain=domain, limit=limit)
-        decision, memory_id = self.memory_promotion.promote(summary, domain=domain, query=query)
+        summary = self.memory_compressor.build_summary(
+            query=query, domain=domain, limit=limit
+        )
+        decision, memory_id = self.memory_promotion.promote(
+            summary, domain=domain, query=query
+        )
         if not decision.should_promote:
             return f"未提升到长期记忆: {decision.reason}"
         return f"已提升到长期记忆: {decision.category} | {decision.reason} | memory_id={memory_id}"
@@ -1283,7 +1430,9 @@ class HarnessAstrBotBridge:
         if not is_harness_enabled():
             return "【AstrBot🔴】OC2 持久记忆：\n• 状态: OFFLINE ❌\n• 说明: Harness 当前已关闭\n[OK]"
 
-        snapshot = self.dashboard_service.get_workspace_snapshot(task_limit=limit, memory_limit=limit).memory_summary
+        snapshot = self.dashboard_service.get_workspace_snapshot(
+            task_limit=limit, memory_limit=limit
+        ).memory_summary
         lines = ["【AstrBot🗂️】OC2 持久记忆："]
         if not snapshot.items:
             lines.append("• 暂无持久记忆")
@@ -1304,14 +1453,17 @@ class HarnessAstrBotBridge:
 
         if snapshot.status_counts:
             status_text = ", ".join(
-                f"{label}({count})" for label, count in sorted(snapshot.status_counts.items())
+                f"{label}({count})"
+                for label, count in sorted(snapshot.status_counts.items())
             )
             lines.append(f"• 记忆状态: {status_text}")
 
         for index, item in enumerate(snapshot.items, 1):
             stars = "⭐" * max(1, int(item.importance * 5))
             tag_text = f" ({', '.join(item.tags)})" if item.tags else ""
-            lines.append(f"• {index}. [{stars}]{tag_text} {item.content[:80]} | 状态: {item.status}")
+            lines.append(
+                f"• {index}. [{stars}]{tag_text} {item.content[:80]} | 状态: {item.status}"
+            )
         lines.append(f"• 推荐操作: {snapshot.recommended_action}")
         lines.append("[OK]")
         return "\n".join(lines)
@@ -1331,7 +1483,9 @@ class HarnessAstrBotBridge:
         for index, item in enumerate(snapshot.items, 1):
             stars = "⭐" * max(1, int(item.importance * 5))
             tag_text = f" ({', '.join(item.tags)})" if item.tags else ""
-            lines.append(f"• {index}. [{stars}]{tag_text} {item.content[:100]} | 状态: {item.status}")
+            lines.append(
+                f"• {index}. [{stars}]{tag_text} {item.content[:100]} | 状态: {item.status}"
+            )
             if item.followup:
                 lines.append(f"  • 跟进: {item.followup}")
         lines.append(f"• 推荐延伸: {snapshot.extension_hint}")
@@ -1339,9 +1493,15 @@ class HarnessAstrBotBridge:
         return "\n".join(lines)
 
     def get_brief_history_text(self, limit: int = 10, kind: str | None = None) -> str:
-        memories = self.memory_store.list_memories(limit=max(limit * 3, 20), source="brief_auto")
+        memories = self.memory_store.list_memories(
+            limit=max(limit * 3, 20), source="brief_auto"
+        )
         if kind:
-            memories = [memory for memory in memories if memory.metadata.get("brief_kind") == kind]
+            memories = [
+                memory
+                for memory in memories
+                if memory.metadata.get("brief_kind") == kind
+            ]
         memories = memories[:limit]
 
         lines = ["【AstrBot🗂️】OC2 简报历史：", f"• 类型: {kind or '全部'}"]
@@ -1358,7 +1518,9 @@ class HarnessAstrBotBridge:
             request_memory = self._find_request_memory_for_brief(memory)
             lines.append(f"• {brief_kind} | {brief_query} | {memory.id}")
             if request_memory:
-                lines.append(f"  • 需求: {request_memory.metadata.get('request_text', '')}")
+                lines.append(
+                    f"  • 需求: {request_memory.metadata.get('request_text', '')}"
+                )
             if preview:
                 lines.append(f"  • {preview}")
         lines.append("[OK]")
@@ -1378,9 +1540,15 @@ class HarnessAstrBotBridge:
         lines.append(f"• 主题: {memory.metadata.get('brief_query', '')}")
         request_memory = self._find_request_memory_for_brief(memory)
         if request_memory:
-            lines.append(f"• 原始需求: {request_memory.metadata.get('request_text', '')}")
-            lines.append(f"• 识别工作流: {request_memory.metadata.get('workflow_label', '')}")
-            lines.append(f"• 执行方式: {request_memory.metadata.get('execution_text', '')}")
+            lines.append(
+                f"• 原始需求: {request_memory.metadata.get('request_text', '')}"
+            )
+            lines.append(
+                f"• 识别工作流: {request_memory.metadata.get('workflow_label', '')}"
+            )
+            lines.append(
+                f"• 执行方式: {request_memory.metadata.get('execution_text', '')}"
+            )
             lines.append(f"• 结果用途: {request_memory.metadata.get('result_use', '')}")
         lines.append("内容")
         for raw_line in memory.content.splitlines():
@@ -1402,7 +1570,9 @@ class HarnessAstrBotBridge:
             "platform": "平台热点简报",
         }
         expected_workflow = workflow_map.get(brief_kind, "")
-        request_memories = self.memory_store.list_memories(limit=100, source="request_auto")
+        request_memories = self.memory_store.list_memories(
+            limit=100, source="request_auto"
+        )
         for memory in request_memories:
             if memory.metadata.get("request_prompt") != brief_query:
                 continue
@@ -1427,10 +1597,16 @@ class HarnessAstrBotBridge:
         if mode == "opencli_fallback":
             return "技术回退"
 
-        if any(keyword in intent for keyword in ["mt_copy", "mt_marketing", "mt_event", "mt_pr"]):
+        if any(
+            keyword in intent
+            for keyword in ["mt_copy", "mt_marketing", "mt_event", "mt_pr"]
+        ):
             return "内容生产"
 
-        if any(keyword in intent for keyword in ["mtoc_news", "mtoc_hot", "mtoc_data", "mtoc_competitor"]):
+        if any(
+            keyword in intent
+            for keyword in ["mtoc_news", "mtoc_hot", "mtoc_data", "mtoc_competitor"]
+        ):
             return "客户洞察"
 
         if any(keyword in intent for keyword in ["analytics", "分析", "报告", "data"]):
@@ -1439,8 +1615,12 @@ class HarnessAstrBotBridge:
         return "通用执行"
 
     def _build_priority_task_summary(self, tasks: list) -> list[str]:
-        fallback_tasks = [task for task in tasks if self._categorize_task(task) == "技术回退"]
-        insight_tasks = [task for task in tasks if self._categorize_task(task) == "客户洞察"]
+        fallback_tasks = [
+            task for task in tasks if self._categorize_task(task) == "技术回退"
+        ]
+        insight_tasks = [
+            task for task in tasks if self._categorize_task(task) == "客户洞察"
+        ]
         lines: list[str] = []
 
         if fallback_tasks:
@@ -1452,21 +1632,24 @@ class HarnessAstrBotBridge:
         if insight_tasks:
             task = insight_tasks[0]
             focus = self._infer_task_followup_focus(task)
-            lines.append(
-                f"高价值客户洞察: {task.intent[:50]} | 建议: 继续跟进 {focus}"
-            )
+            lines.append(f"高价值客户洞察: {task.intent[:50]} | 建议: 继续跟进 {focus}")
 
         return lines
 
     def _infer_task_followup_focus(self, task) -> str:
         command_text = " ".join(
-            str(step.params.get("command", "")) for step in task.plan if step.tool == "opencli"
+            str(step.params.get("command", ""))
+            for step in task.plan
+            if step.tool == "opencli"
         ).lower()
         for label in ["小红书", "抖音", "微博", "知乎"]:
             if label.lower() in command_text:
                 return label
         for label in ["柳州五菱", "柳汽东风", "新能源汽车"]:
-            if label.lower() in command_text or label.lower() in (task.intent or "").lower():
+            if (
+                label.lower() in command_text
+                or label.lower() in (task.intent or "").lower()
+            ):
                 return label
         return "重点平台与客户关键词"
 
@@ -1510,8 +1693,12 @@ class HarnessAstrBotBridge:
 
         customer_memory = next(
             (
-                memory for memory in memories
-                if any(tag in getattr(memory, "tags", []) for tag in ["柳州五菱", "柳汽东风", "新能源汽车"])
+                memory
+                for memory in memories
+                if any(
+                    tag in getattr(memory, "tags", [])
+                    for tag in ["柳州五菱", "柳汽东风", "新能源汽车"]
+                )
             ),
             None,
         )
@@ -1522,8 +1709,12 @@ class HarnessAstrBotBridge:
 
         platform_memory = next(
             (
-                memory for memory in memories
-                if any(tag in getattr(memory, "tags", []) for tag in ["平台热点", "营销策划"])
+                memory
+                for memory in memories
+                if any(
+                    tag in getattr(memory, "tags", [])
+                    for tag in ["平台热点", "营销策划"]
+                )
             ),
             None,
         )
@@ -1540,7 +1731,9 @@ class HarnessAstrBotBridge:
                 return True
         return False
 
-    def _build_task_memory_content(self, task, category: str, execution_mode: str) -> str:
+    def _build_task_memory_content(
+        self, task, category: str, execution_mode: str
+    ) -> str:
         parts = [task.intent[:80]]
         if category:
             parts.append(f"分类: {category}")
@@ -1606,7 +1799,7 @@ class HarnessAstrBotBridge:
         for command in self._extract_opencli_commands(tasks):
             focus = command
             if focus.startswith("google search "):
-                focus = focus[len("google search "):]
+                focus = focus[len("google search ") :]
             if focus not in focuses:
                 focuses.append(focus[:80])
         return focuses
@@ -1662,8 +1855,12 @@ class HarnessAstrBotBridge:
         if customer_focus:
             top_customer, _ = customer_focus.most_common(1)[0]
             if platform_focus:
-                top_platforms = "、".join(label for label, _ in platform_focus.most_common(2))
-                suggestions["insight"] = f"继续跟进 {top_customer} 在 {top_platforms} 的最新传播动向"
+                top_platforms = "、".join(
+                    label for label, _ in platform_focus.most_common(2)
+                )
+                suggestions["insight"] = (
+                    f"继续跟进 {top_customer} 在 {top_platforms} 的最新传播动向"
+                )
             else:
                 suggestions["insight"] = f"继续补充 {top_customer} 的平台舆情与内容线索"
 
@@ -1671,17 +1868,23 @@ class HarnessAstrBotBridge:
             suggestions["ops"] = "检查 OpenCLI 或 Browser Bridge 状态，优先恢复实时搜索"
 
         if "小红书" in platform_focus and "抖音" in platform_focus:
-            suggestions["content"] = "对比小红书种草内容与抖音短视频话题，提炼统一传播主题"
+            suggestions["content"] = (
+                "对比小红书种草内容与抖音短视频话题，提炼统一传播主题"
+            )
         elif platform_focus:
             top_platform, _ = platform_focus.most_common(1)[0]
-            suggestions["content"] = f"围绕 {top_platform} 补一轮高互动内容样本和竞品案例"
+            suggestions["content"] = (
+                f"围绕 {top_platform} 补一轮高互动内容样本和竞品案例"
+            )
 
         if not suggestions and execution_counts.get("opencli_live"):
             suggestions["content"] = "继续扩展实时搜索关键词，补充竞品和媒体视角"
 
         return suggestions
 
-    def _build_raw_event(self, command_name: str, prompt: str | None, event: Any = None) -> dict[str, Any]:
+    def _build_raw_event(
+        self, command_name: str, prompt: str | None, event: Any = None
+    ) -> dict[str, Any]:
         command_text = f"/{command_name}"
         if prompt:
             command_text = f"{command_text} {prompt.strip()}"
@@ -1776,7 +1979,9 @@ class HarnessAstrBotBridge:
     def _reply_file_category(self, session: dict[str, Any], reply: str) -> str:
         code = reply.upper()
         if code not in self.FILE_TYPE_OPTIONS:
-            return "【AstrBot📎】OC2 资料归档：\n• 文件类型无效\n• 请回复 A-H 或 Z\n[OK]"
+            return (
+                "【AstrBot📎】OC2 资料归档：\n• 文件类型无效\n• 请回复 A-H 或 Z\n[OK]"
+            )
         category_key, category_label = self.FILE_TYPE_OPTIONS[code]
         if category_key == "custom":
             session["step"] = "custom_category"
@@ -1798,7 +2003,9 @@ class HarnessAstrBotBridge:
     def _reply_file_owner(self, session: dict[str, Any], reply: str) -> str:
         code = reply.strip()
         if code not in self.FILE_OWNER_OPTIONS:
-            return "【AstrBot📎】OC2 资料归档：\n• 归属对象无效\n• 请回复 1-6 或 9\n[OK]"
+            return (
+                "【AstrBot📎】OC2 资料归档：\n• 归属对象无效\n• 请回复 1-6 或 9\n[OK]"
+            )
         label = self.FILE_OWNER_OPTIONS[code]
         if code == "9":
             session["step"] = "custom_owner"
@@ -1832,7 +2039,11 @@ class HarnessAstrBotBridge:
             ),
             source="file_ingest_auto",
             importance=0.72,
-            tags=["资料归档", result.get("brand", "general"), result.get("category", "")],
+            tags=[
+                "资料归档",
+                result.get("brand", "general"),
+                result.get("category", ""),
+            ],
             metadata={
                 "upload_id": result.get("upload_id", session.get("upload_id", "")),
                 "source_name": result.get("source_name", ""),
@@ -1886,7 +2097,11 @@ class HarnessAstrBotBridge:
                 continue
             if line.startswith("【AstrBot") or line.startswith("JW-Claw"):
                 continue
-            if line.startswith("建议入口") or line.startswith("推荐指令") or line.startswith("推荐下一步"):
+            if (
+                line.startswith("建议入口")
+                or line.startswith("推荐指令")
+                or line.startswith("推荐下一步")
+            ):
                 continue
             if line.startswith(("一、", "二、", "三、", "四、", "五、", "六、")):
                 continue

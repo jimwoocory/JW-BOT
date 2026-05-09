@@ -7,6 +7,14 @@ task_intents:
     category: "task"
     intent_type: "task_new"
 
+  # 显式要求 Hermes 深度处理（由 RouterStage._check_hermes_escalation 优先拦截）
+  # 此处仅作 fallback 兜底，实际升级逻辑在 satisfaction.py
+  - keywords: ["交给hermes", "让hermes", "hermes来", "hermes处理", "hermes执行"]
+    confidence: 0.98
+    category: "task"
+    intent_type: "hermes_escalation"
+    workflow_kind: "project_followup"
+
   # /task intake <kind> <brief> 由 builtin_commands star handler 拦截，Router 不处理
 
   # 关键词匹配：置信度低于阈值(0.75)，强制走 LLM 二次确认后再创建任务

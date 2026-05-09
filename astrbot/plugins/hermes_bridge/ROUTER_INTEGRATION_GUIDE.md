@@ -116,7 +116,7 @@ class HermesGateway:
 
 ```bash
 # 后台运行 Router 服务
-cd /Users/dianchi/JW-Bot/astrbot/plugins/hermes_bridge
+cd /Users/dianchi/DC-Agent/astrbot/plugins/hermes_bridge
 nohup python router.py --db ~/.hermes/state.db --api-port 8788 > /tmp/router.log 2>&1 &
 
 # 检查服务状态

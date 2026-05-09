@@ -8,6 +8,7 @@ Usage in a plugin __init__:
         self.harness_bridge.set_llm_client(adapter)
     # else: harness falls back to cmd_config.json auto-detection
 """
+
 from __future__ import annotations
 
 import logging
@@ -21,7 +22,7 @@ class AstrBotLLMAdapter:
     Wraps AstrBot Context so it looks like jw_claw LLMClient.
     Uses context.get_using_provider() (the active default provider)
     and calls provider.text_chat(prompt, system_prompt).
-    
+
     Supports lazy initialization - will try to get provider on each call
     if not available at init time.
     """
@@ -41,7 +42,11 @@ class AstrBotLLMAdapter:
                 self._provider = prov
                 meta = prov.meta() if hasattr(prov, "meta") else None
                 model = meta.curr_model if meta else "unknown"
-                logger.info("AstrBotLLMAdapter: provider=%s model=%s", type(prov).__name__, model)
+                logger.info(
+                    "AstrBotLLMAdapter: provider=%s model=%s",
+                    type(prov).__name__,
+                    model,
+                )
             else:
                 logger.info("AstrBotLLMAdapter: no active provider found in context")
         except Exception as exc:

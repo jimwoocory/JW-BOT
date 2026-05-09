@@ -126,7 +126,9 @@ def build_task_lines(tasks, category_getter=None, followup_getter=None) -> list[
     return lines
 
 
-def build_memory_lines(memories, category_getter=None, followup_getter=None, preview: bool = False) -> list[str]:
+def build_memory_lines(
+    memories, category_getter=None, followup_getter=None, preview: bool = False
+) -> list[str]:
     if not memories:
         return ["暂无记忆"]
 

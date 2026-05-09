@@ -15,9 +15,9 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # 配置变量
-HERMES_CONFIG_DIR="/Users/dianchi/JW-Bot/hermes-config"
-ASTRBOT_DIR="/Users/dianchi/JW-Bot"
-BRIDGE_DIR="/Users/dianchi/JW-Bot/astrbot-hermes-bridge"
+HERMES_CONFIG_DIR="/Users/dianchi/DC-Agent/hermes-config"
+ASTRBOT_DIR="/Users/dianchi/DC-Agent"
+BRIDGE_DIR="/Users/dianchi/DC-Agent/astrbot-hermes-bridge"
 HERMES_WEBHOOK_PORT=8644
 ASTRBOT_RESPONSE_PORT=8645
 WEBHOOK_SECRET="astrbot_hermes_bridge_secret_$(date +%s | sha256sum | head -c 16)"

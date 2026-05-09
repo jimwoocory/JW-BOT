@@ -117,7 +117,9 @@ class Context:
         conversation_id = await self.conversation_manager.get_curr_conversation_id(umo)
         if not conversation_id:
             return None
-        return await self.harness_store.get_latest_task_for_conversation(conversation_id)
+        return await self.harness_store.get_latest_task_for_conversation(
+            conversation_id
+        )
 
     async def append_harness_trace(
         self,

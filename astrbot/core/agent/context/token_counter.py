@@ -120,14 +120,14 @@ class EstimateTokenCounter:
         return any(
             start <= code <= end
             for start, end in (
-                (0x3400, 0x4DBF),   # CJK Unified Ideographs Extension A
-                (0x4E00, 0x9FFF),   # CJK Unified Ideographs
-                (0x3040, 0x309F),   # Hiragana
-                (0x30A0, 0x30FF),   # Katakana
-                (0x31F0, 0x31FF),   # Katakana Phonetic Extensions
-                (0xAC00, 0xD7AF),   # Hangul Syllables
-                (0x1100, 0x11FF),   # Hangul Jamo
-                (0x3130, 0x318F),   # Hangul Compatibility Jamo
+                (0x3400, 0x4DBF),  # CJK Unified Ideographs Extension A
+                (0x4E00, 0x9FFF),  # CJK Unified Ideographs
+                (0x3040, 0x309F),  # Hiragana
+                (0x30A0, 0x30FF),  # Katakana
+                (0x31F0, 0x31FF),  # Katakana Phonetic Extensions
+                (0xAC00, 0xD7AF),  # Hangul Syllables
+                (0x1100, 0x11FF),  # Hangul Jamo
+                (0x3130, 0x318F),  # Hangul Compatibility Jamo
             )
         )
 

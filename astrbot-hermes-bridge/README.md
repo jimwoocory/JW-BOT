@@ -14,7 +14,7 @@ QQ 用户 ← NapCat/OneBot ← AstrBot (QQBot) ← Webhook ← Hermes Agent ←
 
 1. **编辑 Hermes 配置文件**：
 ```yaml
-# /Users/dianchi/JW-Bot/hermes-config/config.yaml
+# /Users/dianchi/DC-Agent/hermes-config/config.yaml
 
 gateway:
   platforms:
@@ -49,7 +49,7 @@ gateway:
 
 2. **启动 Hermes Webhook**：
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 ./hermes-start.sh gateway
 ```
 
@@ -74,14 +74,14 @@ platform:
 ```
 
 2. **安装 NapCat 或 go-cqhttp**：
-   - 参考 AstrBot 文档：`/Users/dianchi/JW-Bot/docs/zh/platform/aiocqhttp.md`
+   - 参考 AstrBot 文档：`/Users/dianchi/DC-Agent/docs/zh/platform/aiocqhttp.md`
 
 ### 步骤 3：创建 AstrBot 转发插件
 
 创建一个自定义插件，将 QQ 消息转发到 Hermes Webhook：
 
 ```python
-# /Users/dianchi/JW-Bot/astrbot/plugins/hermes_bridge/__init__.py
+# /Users/dianchi/DC-Agent/astrbot/plugins/hermes_bridge/__init__.py
 
 import aiohttp
 import json
@@ -242,13 +242,13 @@ curl -X POST http://localhost:8644/webhooks/astrbot_qq \
 ### 2. 查看 Hermes 日志
 
 ```bash
-tail -f /Users/dianchi/JW-Bot/hermes-agent-temp/logs/gateway.log
+tail -f /Users/dianchi/DC-Agent/hermes-agent-temp/logs/gateway.log
 ```
 
 ### 3. 查看 AstrBot 日志
 
 ```bash
-tail -f /Users/dianchi/JW-Bot/logs/astrbot.log
+tail -f /Users/dianchi/DC-Agent/logs/astrbot.log
 ```
 
 ## ⚠️ 注意事项

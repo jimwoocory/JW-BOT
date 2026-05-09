@@ -61,7 +61,9 @@ class HallCollaborationRoute(Route):
                 }
                 for plugin in plugins
             ]
-            logger.info(f"Initialized agent roster with {len(self._agent_roster)} agents")
+            logger.info(
+                f"Initialized agent roster with {len(self._agent_roster)} agents"
+            )
         except Exception as e:
             logger.error(f"Failed to initialize agent roster: {e}")
             self._agent_roster = []
@@ -146,9 +148,7 @@ class HallCollaborationRoute(Route):
                         "last_activity": (
                             last_msg.get("timestamp") if last_msg else None
                         ),
-                        "participants": list(
-                            {msg.get("author") for msg in messages}
-                        ),
+                        "participants": list({msg.get("author") for msg in messages}),
                         "has_pending_tasks": any(
                             msg.get("type") == "task"
                             and msg.get("status") in ["pending", "in_progress"]
@@ -464,9 +464,7 @@ class HallCollaborationRoute(Route):
 
             return (
                 jsonify(
-                    Response().ok(
-                        data=self._execution_orders[discussion_id]
-                    ).__dict__
+                    Response().ok(data=self._execution_orders[discussion_id]).__dict__
                 ),
                 200,
             )

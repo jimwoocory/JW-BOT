@@ -77,12 +77,14 @@ class LosslessDebugRoute(Route):
             )
             return jsonify(
                 Response()
-                .ok(data={
-                    "items": items,
-                    "total": total,
-                    "offset": offset,
-                    "limit": limit,
-                })
+                .ok(
+                    data={
+                        "items": items,
+                        "total": total,
+                        "offset": offset,
+                        "limit": limit,
+                    }
+                )
                 .__dict__
             )
         except Exception as exc:
@@ -92,9 +94,7 @@ class LosslessDebugRoute(Route):
         """Return lossless_links lineage rows."""
         try:
             links = await self._store.get_links(conversation_id)
-            return jsonify(
-                Response().ok(data={"links": links}).__dict__
-            )
+            return jsonify(Response().ok(data={"links": links}).__dict__)
         except Exception as exc:
             return jsonify(Response().error(str(exc)).__dict__), 500
 
@@ -103,8 +103,6 @@ class LosslessDebugRoute(Route):
         try:
             limit = request.args.get("limit", 20, type=int)
             jobs = await self._store.list_jobs(conversation_id, limit=limit)
-            return jsonify(
-                Response().ok(data={"jobs": jobs}).__dict__
-            )
+            return jsonify(Response().ok(data={"jobs": jobs}).__dict__)
         except Exception as exc:
             return jsonify(Response().error(str(exc)).__dict__), 500

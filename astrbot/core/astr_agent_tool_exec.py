@@ -705,7 +705,8 @@ class FunctionToolExecutor(BaseFunctionToolExecutor[AstrAgentContext]):
                     {
                         "tool_name": tool.name,
                         "error": "timeout",
-                        "timeout_seconds": tool_call_timeout or run_context.tool_call_timeout,
+                        "timeout_seconds": tool_call_timeout
+                        or run_context.tool_call_timeout,
                     },
                 )
                 raise Exception(

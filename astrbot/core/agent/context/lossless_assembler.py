@@ -30,9 +30,7 @@ except ImportError:
 # Prefix injected before the summary text in the user turn.
 _SUMMARY_USER_PREFIX = "[Compact summary of earlier conversation]\n"
 # Acknowledgement text placed in the following assistant turn.
-_SUMMARY_ASSISTANT_ACK = (
-    "Acknowledged. I will use this compact summary together with the recent raw conversation."
-)
+_SUMMARY_ASSISTANT_ACK = "Acknowledged. I will use this compact summary together with the recent raw conversation."
 
 
 class LosslessAssembler:
