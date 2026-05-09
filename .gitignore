@@ -92,11 +92,20 @@ hermes-config/logs/
 hermes-config/memories/
 hermes-config/skills/.curator_state
 
-# Hermes vendored install (has its own .git, ~150M)
+# Hermes vendored installs (each has its own .git)
 hermes-agent/
+hermes-agent-temp/
+hermes-webui/
+
+# Hermes runtime backup snapshots
+hermes-config/state.db.pre-*-backup
+hermes-config/channel_directory.json
 
 # Sibling Claude worktrees (each is its own checkout)
 .claude/worktrees/
 
 # Local sandboxes / backups inside data/
 data/backups/
+
+# Test videos (too large for git)
+docs/grey_test_video/
