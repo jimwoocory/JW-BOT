@@ -88,7 +88,9 @@ class AstrBotKBClient:
         self._username = cfg["astrbot"]["username"]
         self._password = cfg["astrbot"]["password"]
         self._kb_id: str = cfg["astrbot"].get("kb_id", "") or ""
-        self._embedding_provider_id: str = cfg["astrbot"].get("embedding_provider_id", "") or ""
+        self._embedding_provider_id: str = (
+            cfg["astrbot"].get("embedding_provider_id", "") or ""
+        )
         self._kb_mapping: dict = cfg["astrbot"].get("kb_mapping", {})
         self._token: str = ""
         self._token_fetched_at: float = 0
@@ -266,7 +268,9 @@ class NASIngestHandler(FileSystemEventHandler):
         self._client = client
         self._state = state
         self._inbox = Path(cfg["nas"]["mount_point"]) / cfg["watch"]["inbox_dir"]
-        self._processed = Path(cfg["nas"]["mount_point"]) / cfg["watch"]["processed_dir"]
+        self._processed = (
+            Path(cfg["nas"]["mount_point"]) / cfg["watch"]["processed_dir"]
+        )
         self._extensions = set(cfg["watch"]["supported_extensions"])
         self._settle = float(cfg["watch"].get("settle_seconds", 3))
         self.log = logging.getLogger("nas.handler")
@@ -318,7 +322,9 @@ def scan_inbox(cfg: dict, client: AstrBotKBClient, state: IngestState):
     mount = Path(cfg["nas"]["mount_point"])
     full_scan: bool = cfg["watch"].get("full_scan", False)
     extensions = set(cfg["watch"]["supported_extensions"])
-    exclude_dirs = set(cfg["watch"].get("exclude_dirs", ["#recycle", "processed", "archive"]))
+    exclude_dirs = set(
+        cfg["watch"].get("exclude_dirs", ["#recycle", "processed", "archive"])
+    )
     log = logging.getLogger("nas.scan")
 
     if not mount.exists():
@@ -368,7 +374,9 @@ def scan_inbox(cfg: dict, client: AstrBotKBClient, state: IngestState):
             log.warning(f"inbox 目录不存在：{inbox}")
             return
 
-        files = [f for f in inbox.iterdir() if f.is_file() and f.suffix.lower() in extensions]
+        files = [
+            f for f in inbox.iterdir() if f.is_file() and f.suffix.lower() in extensions
+        ]
         if not files:
             log.info("inbox 目录无待处理文件。")
             return
@@ -399,7 +407,9 @@ def scan_inbox(cfg: dict, client: AstrBotKBClient, state: IngestState):
 # ----------------------------------------------------------------
 def main():
     parser = argparse.ArgumentParser(description="NAS 知识库文件监听摄入器")
-    parser.add_argument("--once", action="store_true", help="扫描一次 inbox 后退出（适合 cron）")
+    parser.add_argument(
+        "--once", action="store_true", help="扫描一次 inbox 后退出（适合 cron）"
+    )
     args = parser.parse_args()
 
     cfg = load_config()

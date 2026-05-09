@@ -29,7 +29,7 @@ AstrBot 知识库 ✓
 
 1. **NAS 已挂载**
    ```bash
-   cd /Users/dianchi/JW-Bot/nas_sync
+   cd /Users/dianchi/DC-Agent/nas_sync
    ./mount.sh mount
    ```
 
@@ -54,7 +54,7 @@ AstrBot 知识库 ✓
 ### 1. 安装依赖
 
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 更新 requirements.txt（如需要）
 pip install -r requirements.txt
@@ -127,13 +127,13 @@ crontab -e
 添加以下行：
 ```cron
 # 每小时执行一次飞书同步
-0 * * * * cd /Users/dianchi/JW-Bot/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync.py >> feishu_sync.log 2>&1
+0 * * * * cd /Users/dianchi/DC-Agent/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync.py >> feishu_sync.log 2>&1
 ```
 
 ### 查看日志
 
 ```bash
-tail -f /Users/dianchi/JW-Bot/nas_sync/feishu_sync.log
+tail -f /Users/dianchi/DC-Agent/nas_sync/feishu_sync.log
 ```
 
 ---
@@ -161,7 +161,7 @@ tail -f /Users/dianchi/JW-Bot/nas_sync/feishu_sync.log
 
 删除 `.feishu_sync_state.json` 后重新运行：
 ```bash
-rm /Users/dianchi/JW-Bot/nas_sync/.feishu_sync_state.json
+rm /Users/dianchi/DC-Agent/nas_sync/.feishu_sync_state.json
 python feishu_sync.py
 ```
 
@@ -203,7 +203,7 @@ python feishu_sync.py
 **解决**：
 ```bash
 # 重新挂载 NAS
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 ./mount.sh umount
 ./mount.sh mount
 ```

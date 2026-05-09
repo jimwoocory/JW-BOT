@@ -29,8 +29,7 @@ import yaml
 # 日志配置
 # ============================================================
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -50,34 +49,32 @@ class Config:
         if not os.path.exists(self.config_file):
             raise FileNotFoundError(f"配置文件不存在: {self.config_file}")
 
-        with open(self.config_file, 'r', encoding='utf-8') as f:
+        with open(self.config_file, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # NAS 配置
-        self.nas_config = config.get('nas', {})
-        self.watch_config = config.get('watch', {})
-        self.astrbot_config = config.get('astrbot', {})
+        self.nas_config = config.get("nas", {})
+        self.watch_config = config.get("watch", {})
+        self.astrbot_config = config.get("astrbot", {})
 
         # 飞书应用配置
-        self.feishu_app_id = os.getenv('FEISHU_APP_ID', 'cli_a939424636799bc9')
-        self.feishu_app_secret = os.getenv('FEISHU_APP_SECRET', '')
+        self.feishu_app_id = os.getenv("FEISHU_APP_ID", "cli_a939424636799bc9")
+        self.feishu_app_secret = os.getenv("FEISHU_APP_SECRET", "")
 
         # NAS 挂载点
-        self.mount_point = self.nas_config.get('mount_point', '/Users/dianchi/nas_kb')
+        self.mount_point = self.nas_config.get("mount_point", "/Users/dianchi/nas_kb")
         self.inbox_dir = os.path.join(
-            self.mount_point,
-            self.watch_config.get('inbox_dir', 'inbox')
+            self.mount_point, self.watch_config.get("inbox_dir", "inbox")
         )
 
         # 监听群组配置（在 config.yaml 中设置）
-        self.feishu_config = config.get('feishu', {})
-        self.group_chat_id = self.feishu_config.get('group_chat_id', '')
-        self.department_mapping = self.feishu_config.get('department_mapping', {})
+        self.feishu_config = config.get("feishu", {})
+        self.group_chat_id = self.feishu_config.get("group_chat_id", "")
+        self.department_mapping = self.feishu_config.get("department_mapping", {})
 
         # 同步状态文件
         self.sync_state_file = os.path.join(
-            os.path.dirname(__file__),
-            '.feishu_method_c_state.json'
+            os.path.dirname(__file__), ".feishu_method_c_state.json"
         )
 
         logger.info(f"配置加载完成: inbox_dir={self.inbox_dir}")
@@ -119,21 +116,18 @@ class FeishuClient:
         logger.info("正在认证飞书应用...")
 
         url = f"{self.BASE_URL}/auth/v3/app_access_token/internal"
-        payload = {
-            "app_id": self.app_id,
-            "app_secret": self.app_secret
-        }
+        payload = {"app_id": self.app_id, "app_secret": self.app_secret}
 
         try:
             response = requests.post(url, json=payload, timeout=10)
             response.raise_for_status()
             data = response.json()
 
-            if data.get('code') != 0:
+            if data.get("code") != 0:
                 raise Exception(f"认证失败: {data.get('msg')}")
 
-            self.access_token = data['app_access_token']
-            self.token_expire_time = time.time() + data['expire']
+            self.access_token = data["app_access_token"]
+            self.token_expire_time = time.time() + data["expire"]
             logger.info("认证成功")
 
         except requests.exceptions.RequestException as e:
@@ -150,12 +144,12 @@ class FeishuClient:
         self._ensure_token_valid()
         return {
             "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
-    def list_group_messages(self, group_chat_id: str,
-                            page_size: int = 50,
-                            start_time: Optional[str] = None) -> List[Dict]:
+    def list_group_messages(
+        self, group_chat_id: str, page_size: int = 50, start_time: Optional[str] = None
+    ) -> List[Dict]:
         """
         列出群组消息
 
@@ -178,7 +172,7 @@ class FeishuClient:
                 "container_id_type": "chat",
                 "container_id": group_chat_id,
                 "page_size": page_size,
-                "sort_type": "ByCreateTimeAsc"
+                "sort_type": "ByCreateTimeAsc",
             }
 
             if page_token:
@@ -188,22 +182,19 @@ class FeishuClient:
 
             try:
                 response = requests.get(
-                    url,
-                    params=params,
-                    headers=self._get_headers(),
-                    timeout=10
+                    url, params=params, headers=self._get_headers(), timeout=10
                 )
                 response.raise_for_status()
                 data = response.json()
 
-                if data.get('code') != 0:
+                if data.get("code") != 0:
                     logger.error(f"消息查询失败: {data.get('msg')}")
                     break
 
-                items = data.get('data', {}).get('items', [])
+                items = data.get("data", {}).get("items", [])
                 messages.extend(items)
 
-                page_token = data.get('data', {}).get('page_token')
+                page_token = data.get("data", {}).get("page_token")
                 if not page_token:
                     break
 
@@ -227,19 +218,15 @@ class FeishuClient:
         url = f"{self.BASE_URL}/drive/v1/files/{file_token}"
 
         try:
-            response = requests.get(
-                url,
-                headers=self._get_headers(),
-                timeout=10
-            )
+            response = requests.get(url, headers=self._get_headers(), timeout=10)
             response.raise_for_status()
             data = response.json()
 
-            if data.get('code') != 0:
+            if data.get("code") != 0:
                 logger.error(f"获取文件信息失败: {data.get('msg')}")
                 return {}
 
-            return data.get('data', {})
+            return data.get("data", {})
 
         except requests.exceptions.RequestException as e:
             logger.error(f"获取文件信息失败: {e}")
@@ -251,16 +238,13 @@ class FeishuClient:
 
         try:
             response = requests.get(
-                url,
-                headers=self._get_headers(),
-                timeout=30,
-                stream=True
+                url, headers=self._get_headers(), timeout=30, stream=True
             )
             response.raise_for_status()
 
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-            with open(save_path, 'wb') as f:
+            with open(save_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
@@ -280,17 +264,13 @@ class FeishuClient:
 
         try:
             response = requests.get(
-                url,
-                params=params,
-                headers=self._get_headers(),
-                timeout=30,
-                stream=True
+                url, params=params, headers=self._get_headers(), timeout=30, stream=True
             )
             response.raise_for_status()
 
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-            with open(save_path, 'wb') as f:
+            with open(save_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
@@ -320,19 +300,15 @@ class FeishuClient:
         url = f"{self.BASE_URL}/contact/v3/users/{user_id}"
 
         try:
-            response = requests.get(
-                url,
-                headers=self._get_headers(),
-                timeout=10
-            )
+            response = requests.get(url, headers=self._get_headers(), timeout=10)
             response.raise_for_status()
             data = response.json()
 
-            if data.get('code') != 0:
+            if data.get("code") != 0:
                 logger.warning(f"获取用户信息失败: {user_id}")
                 return {}
 
-            user_info = data.get('data', {}).get('user', {})
+            user_info = data.get("data", {}).get("user", {})
             # 缓存用户信息
             self.user_cache[user_id] = user_info
             return user_info
@@ -351,13 +327,13 @@ class LinkParser:
     # 飞书链接正则表达式
     FEISHU_LINK_PATTERNS = [
         # 云空间文件: https://xxx.feishu.cn/drive/folder/abc123
-        r'https://[^/]+\.feishu\.cn/drive/[a-z]+/([a-zA-Z0-9]+)',
+        r"https://[^/]+\.feishu\.cn/drive/[a-z]+/([a-zA-Z0-9]+)",
         # Wiki 文档: https://xxx.feishu.cn/wiki/wikcn...
-        r'https://[^/]+\.feishu\.cn/wiki/([a-zA-Z0-9]+)',
+        r"https://[^/]+\.feishu\.cn/wiki/([a-zA-Z0-9]+)",
         # 新版文档: https://xxx.feishu.cn/docx/xxx
-        r'https://[^/]+\.feishu\.cn/docx/([a-zA-Z0-9]+)',
+        r"https://[^/]+\.feishu\.cn/docx/([a-zA-Z0-9]+)",
         # 表格: https://xxx.feishu.cn/sheets/xxx
-        r'https://[^/]+\.feishu\.cn/sheets/([a-zA-Z0-9]+)',
+        r"https://[^/]+\.feishu\.cn/sheets/([a-zA-Z0-9]+)",
     ]
 
     @staticmethod
@@ -390,10 +366,10 @@ class LinkParser:
         """
         # 尝试多种格式
         patterns = [
-            r'drive/[a-z]+/([a-zA-Z0-9]+)',
-            r'wiki/([a-zA-Z0-9]+)',
-            r'docx/([a-zA-Z0-9]+)',
-            r'sheets/([a-zA-Z0-9]+)',
+            r"drive/[a-z]+/([a-zA-Z0-9]+)",
+            r"wiki/([a-zA-Z0-9]+)",
+            r"docx/([a-zA-Z0-9]+)",
+            r"sheets/([a-zA-Z0-9]+)",
         ]
 
         for pattern in patterns:
@@ -411,13 +387,15 @@ class MethodCSyncManager:
     """Method C：从群组消息同步文档"""
 
     FILE_TYPE_MAP = {
-        'file': 'file',
-        'docx': 'markdown',
-        'sheet': 'csv',
-        'bitable': 'csv',
+        "file": "file",
+        "docx": "markdown",
+        "sheet": "csv",
+        "bitable": "csv",
     }
 
-    def __init__(self, config: Config, feishu_client: FeishuClient, dry_run: bool = False):
+    def __init__(
+        self, config: Config, feishu_client: FeishuClient, dry_run: bool = False
+    ):
         self.config = config
         self.feishu = feishu_client
         self.dry_run = dry_run
@@ -427,7 +405,7 @@ class MethodCSyncManager:
         """加载同步状态"""
         if os.path.exists(self.config.sync_state_file):
             try:
-                with open(self.config.sync_state_file, 'r') as f:
+                with open(self.config.sync_state_file, "r") as f:
                     return json.load(f)
             except Exception as e:
                 logger.warning(f"读取同步状态失败: {e}")
@@ -436,7 +414,7 @@ class MethodCSyncManager:
     def _save_sync_state(self):
         """保存同步状态"""
         try:
-            with open(self.config.sync_state_file, 'w') as f:
+            with open(self.config.sync_state_file, "w") as f:
                 json.dump(self.sync_state, f, indent=2, ensure_ascii=False)
         except Exception as e:
             logger.error(f"保存同步状态失败: {e}")
@@ -451,7 +429,7 @@ class MethodCSyncManager:
             self.sync_state["processed_messages"] = {}
         self.sync_state["processed_messages"][message_id] = {
             "timestamp": datetime.now().isoformat(),
-            "file_tokens": file_tokens
+            "file_tokens": file_tokens,
         }
 
     def _get_department_from_user_id(self, user_id: str) -> str:
@@ -472,7 +450,7 @@ class MethodCSyncManager:
         """清理文件名"""
         # 移除不合法的字符
         invalid_chars = r'[<>:"|?*\x00-\x1f]'
-        return re.sub(invalid_chars, '_', filename)
+        return re.sub(invalid_chars, "_", filename)
 
     def sync_once(self):
         """执行一次同步"""
@@ -491,7 +469,7 @@ class MethodCSyncManager:
             for message in messages:
                 try:
                     # 跳过已处理的消息
-                    message_id = message.get('message_id')
+                    message_id = message.get("message_id")
                     if self._is_message_processed(message_id):
                         logger.debug(f"消息已处理，跳过: {message_id}")
                         skipped_count += 1
@@ -511,7 +489,9 @@ class MethodCSyncManager:
             self._save_sync_state()
 
             logger.info("=" * 60)
-            logger.info(f"同步完成: 成功 {synced_count}, 失败 {failed_count}, 跳过 {skipped_count}")
+            logger.info(
+                f"同步完成: 成功 {synced_count}, 失败 {failed_count}, 跳过 {skipped_count}"
+            )
             logger.info("=" * 60)
 
         except Exception as e:
@@ -527,12 +507,12 @@ class MethodCSyncManager:
         Returns:
             是否处理成功
         """
-        message_id = message.get('message_id')
-        sender_id = message.get('sender', {}).get('id', '')
-        create_time = message.get('create_time', '')
+        message_id = message.get("message_id")
+        sender_id = message.get("sender", {}).get("id", "")
+        create_time = message.get("create_time", "")
 
         # 提取消息内容中的链接
-        content = message.get('body', {}).get('content', '')
+        content = message.get("body", {}).get("content", "")
 
         # 解析链接
         file_tokens = LinkParser.extract_links(content)
@@ -544,14 +524,16 @@ class MethodCSyncManager:
 
         # 获取发送者信息和部门
         user_info = self.feishu.get_user_info(sender_id)
-        user_name = user_info.get('name', 'Unknown')
+        user_name = user_info.get("name", "Unknown")
         department = self._get_department_from_user_id(sender_id)
 
         # 处理每个文件链接
         downloaded_files = 0
         for file_token in file_tokens:
             try:
-                if self._download_file_by_token(file_token, user_name, department, create_time):
+                if self._download_file_by_token(
+                    file_token, user_name, department, create_time
+                ):
                     downloaded_files += 1
             except Exception as e:
                 logger.error(f"下载文件失败 ({file_token}): {e}")
@@ -562,10 +544,9 @@ class MethodCSyncManager:
 
         return False
 
-    def _download_file_by_token(self, file_token: str,
-                                sender_name: str,
-                                department: str,
-                                create_time: str) -> bool:
+    def _download_file_by_token(
+        self, file_token: str, sender_name: str, department: str, create_time: str
+    ) -> bool:
         """
         通过文件 token 下载文件
 
@@ -584,13 +565,13 @@ class MethodCSyncManager:
             logger.error(f"无法获取文件信息: {file_token}")
             return False
 
-        file_name = file_info.get('name', 'unknown')
-        file_type = file_info.get('type', 'file')
+        file_name = file_info.get("name", "unknown")
+        file_type = file_info.get("type", "file")
 
         logger.info(f"正在同步: {file_name} (类型: {file_type}, 部门: {department})")
 
         # 生成保存路径：inbox/部门/filename_sendername_date.ext
-        date_str = datetime.fromtimestamp(int(create_time) / 1000).strftime('%Y%m%d')
+        date_str = datetime.fromtimestamp(int(create_time) / 1000).strftime("%Y%m%d")
         base_name, ext = os.path.splitext(file_name)
         safe_sender = self._sanitize_filename(sender_name)
 
@@ -617,10 +598,10 @@ class MethodCSyncManager:
 
         try:
             # 根据文件类型选择下载方式
-            if file_type in ['docx', 'sheet', 'bitable']:
-                export_type = self.FILE_TYPE_MAP.get(file_type, 'pdf')
+            if file_type in ["docx", "sheet", "bitable"]:
+                export_type = self.FILE_TYPE_MAP.get(file_type, "pdf")
                 _, ext = os.path.splitext(save_path)
-                export_path = save_path.replace(ext, f'.{export_type}')
+                export_path = save_path.replace(ext, f".{export_type}")
                 self.feishu.export_file(file_token, export_type, export_path)
                 save_path = export_path
             else:
@@ -638,10 +619,10 @@ class MethodCSyncManager:
 # 主程序
 # ============================================================
 def main():
-    parser = argparse.ArgumentParser(description='飞书群组文档自动同步脚本 (Method C)')
-    parser.add_argument('--dry-run', action='store_true', help='测试模式，不实际下载')
-    parser.add_argument('--watch', action='store_true', help='监听模式，持续同步')
-    parser.add_argument('--interval', type=int, default=300, help='监听间隔（秒）')
+    parser = argparse.ArgumentParser(description="飞书群组文档自动同步脚本 (Method C)")
+    parser.add_argument("--dry-run", action="store_true", help="测试模式，不实际下载")
+    parser.add_argument("--watch", action="store_true", help="监听模式，持续同步")
+    parser.add_argument("--interval", type=int, default=300, help="监听间隔（秒）")
 
     args = parser.parse_args()
 
@@ -680,10 +661,11 @@ def main():
     except Exception as e:
         logger.error(f"程序错误: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     success = main()
     sys.exit(0 if success else 1)

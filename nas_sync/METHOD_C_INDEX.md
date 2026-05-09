@@ -10,7 +10,7 @@
 - ✅ 端到端的工作流程
 - ✅ 完整的故障排查指南
 
-所有文件已生成到：`/Users/dianchi/JW-Bot/nas_sync/`
+所有文件已生成到：`/Users/dianchi/DC-Agent/nas_sync/`
 
 ---
 
@@ -20,7 +20,7 @@
 **如果你很急，想立即启动：**
 
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU'
 python method_c_setup.py
 python feishu_sync_method_c.py --watch --interval 300
@@ -281,7 +281,7 @@ python method_c_setup.py
 
 ### 初次配置
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU'
 python method_c_setup.py          # 自动配置
 ```
@@ -316,7 +316,7 @@ tail -f feishu_sync_method_c.log
 ```bash
 crontab -e
 # 添加：
-0 * * * * cd /Users/dianchi/JW-Bot/nas_sync && \
+0 * * * * cd /Users/dianchi/DC-Agent/nas_sync && \
   export FEISHU_APP_SECRET='...' && \
   python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
 ```
@@ -432,7 +432,7 @@ ls -la /Users/dianchi/nas_kb/inbox/
 
 ### 现在（立即）
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU'
 python method_c_setup.py
 ```

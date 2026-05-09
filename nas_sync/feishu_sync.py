@@ -29,8 +29,7 @@ import yaml
 # 日志配置
 # ============================================================
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -50,29 +49,27 @@ class Config:
         if not os.path.exists(self.config_file):
             raise FileNotFoundError(f"配置文件不存在: {self.config_file}")
 
-        with open(self.config_file, 'r', encoding='utf-8') as f:
+        with open(self.config_file, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # NAS 配置
-        self.nas_config = config.get('nas', {})
-        self.watch_config = config.get('watch', {})
-        self.astrbot_config = config.get('astrbot', {})
+        self.nas_config = config.get("nas", {})
+        self.watch_config = config.get("watch", {})
+        self.astrbot_config = config.get("astrbot", {})
 
         # 飞书应用配置（从环境变量或这里填写）
-        self.feishu_app_id = os.getenv('FEISHU_APP_ID', 'cli_a939424636799bc9')
-        self.feishu_app_secret = os.getenv('FEISHU_APP_SECRET', '')
+        self.feishu_app_id = os.getenv("FEISHU_APP_ID", "cli_a939424636799bc9")
+        self.feishu_app_secret = os.getenv("FEISHU_APP_SECRET", "")
 
         # NAS 挂载点
-        self.mount_point = self.nas_config.get('mount_point', '/Users/dianchi/nas_kb')
+        self.mount_point = self.nas_config.get("mount_point", "/Users/dianchi/nas_kb")
         self.inbox_dir = os.path.join(
-            self.mount_point,
-            self.watch_config.get('inbox_dir', 'inbox')
+            self.mount_point, self.watch_config.get("inbox_dir", "inbox")
         )
 
         # 同步状态文件
         self.sync_state_file = os.path.join(
-            os.path.dirname(__file__),
-            '.feishu_sync_state.json'
+            os.path.dirname(__file__), ".feishu_sync_state.json"
         )
 
         logger.info(f"配置加载完成: inbox_dir={self.inbox_dir}")
@@ -109,21 +106,18 @@ class FeishuClient:
         logger.info("正在认证飞书应用...")
 
         url = f"{self.BASE_URL}/auth/v3/app_access_token/internal"
-        payload = {
-            "app_id": self.app_id,
-            "app_secret": self.app_secret
-        }
+        payload = {"app_id": self.app_id, "app_secret": self.app_secret}
 
         try:
             response = requests.post(url, json=payload, timeout=10)
             response.raise_for_status()
             data = response.json()
 
-            if data.get('code') != 0:
+            if data.get("code") != 0:
                 raise Exception(f"认证失败: {data.get('msg')}")
 
-            self.access_token = data['app_access_token']
-            self.token_expire_time = time.time() + data['expire']
+            self.access_token = data["app_access_token"]
+            self.token_expire_time = time.time() + data["expire"]
             logger.info("认证成功")
 
         except requests.exceptions.RequestException as e:
@@ -140,11 +134,12 @@ class FeishuClient:
         self._ensure_token_valid()
         return {
             "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
-    def list_drive_files(self, folder_token: Optional[str] = None,
-                        page_size: int = 100) -> List[Dict]:
+    def list_drive_files(
+        self, folder_token: Optional[str] = None, page_size: int = 100
+    ) -> List[Dict]:
         """
         列出云空间文件
 
@@ -162,10 +157,7 @@ class FeishuClient:
 
         while True:
             url = f"{self.BASE_URL}/drive/v1/files"
-            params = {
-                "page_size": page_size,
-                "order_by": "EditedTime"
-            }
+            params = {"page_size": page_size, "order_by": "EditedTime"}
 
             if folder_token:
                 params["folder_token"] = folder_token
@@ -174,22 +166,19 @@ class FeishuClient:
 
             try:
                 response = requests.get(
-                    url,
-                    params=params,
-                    headers=self._get_headers(),
-                    timeout=10
+                    url, params=params, headers=self._get_headers(), timeout=10
                 )
                 response.raise_for_status()
                 data = response.json()
 
-                if data.get('code') != 0:
+                if data.get("code") != 0:
                     logger.error(f"列表查询失败: {data.get('msg')}")
                     break
 
-                items = data.get('data', {}).get('items', [])
+                items = data.get("data", {}).get("items", [])
                 files.extend(items)
 
-                page_token = data.get('data', {}).get('page_token')
+                page_token = data.get("data", {}).get("page_token")
                 if not page_token:
                     break
 
@@ -212,10 +201,7 @@ class FeishuClient:
 
         try:
             response = requests.get(
-                url,
-                headers=self._get_headers(),
-                timeout=30,
-                stream=True
+                url, headers=self._get_headers(), timeout=30, stream=True
             )
             response.raise_for_status()
 
@@ -223,7 +209,7 @@ class FeishuClient:
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
             # 下载文件
-            with open(save_path, 'wb') as f:
+            with open(save_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
@@ -250,11 +236,7 @@ class FeishuClient:
 
         try:
             response = requests.get(
-                url,
-                params=params,
-                headers=self._get_headers(),
-                timeout=30,
-                stream=True
+                url, params=params, headers=self._get_headers(), timeout=30, stream=True
             )
             response.raise_for_status()
 
@@ -262,7 +244,7 @@ class FeishuClient:
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
             # 保存文件
-            with open(save_path, 'wb') as f:
+            with open(save_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
@@ -284,13 +266,15 @@ class SyncManager:
 
     # 支持的文件类型映射
     FILE_TYPE_MAP = {
-        'file': 'file',           # 普通文件，直接下载
-        'docx': 'markdown',       # Word 文档导出为 Markdown
-        'sheet': 'csv',           # 表格导出为 CSV
-        'bitable': 'csv',         # 多维表格导出为 CSV
+        "file": "file",  # 普通文件，直接下载
+        "docx": "markdown",  # Word 文档导出为 Markdown
+        "sheet": "csv",  # 表格导出为 CSV
+        "bitable": "csv",  # 多维表格导出为 CSV
     }
 
-    def __init__(self, config: Config, feishu_client: FeishuClient, dry_run: bool = False):
+    def __init__(
+        self, config: Config, feishu_client: FeishuClient, dry_run: bool = False
+    ):
         self.config = config
         self.feishu = feishu_client
         self.dry_run = dry_run
@@ -300,7 +284,7 @@ class SyncManager:
         """加载同步状态"""
         if os.path.exists(self.config.sync_state_file):
             try:
-                with open(self.config.sync_state_file, 'r') as f:
+                with open(self.config.sync_state_file, "r") as f:
                     return json.load(f)
             except Exception as e:
                 logger.warning(f"读取同步状态失败: {e}")
@@ -309,7 +293,7 @@ class SyncManager:
     def _save_sync_state(self):
         """保存同步状态"""
         try:
-            with open(self.config.sync_state_file, 'w') as f:
+            with open(self.config.sync_state_file, "w") as f:
                 json.dump(self.sync_state, f, indent=2)
         except Exception as e:
             logger.error(f"保存同步状态失败: {e}")
@@ -320,7 +304,7 @@ class SyncManager:
 
     def _is_file_supported(self, file_name: str) -> bool:
         """检查文件类型是否支持"""
-        supported_exts = self.config.watch_config.get('supported_extensions', [])
+        supported_exts = self.config.watch_config.get("supported_extensions", [])
         _, ext = os.path.splitext(file_name)
         return ext.lower() in [e.lower() for e in supported_exts]
 
@@ -365,16 +349,16 @@ class SyncManager:
         Returns:
             是否成功同步
         """
-        file_token = file_info.get('file_token')
-        file_name = file_info.get('name', 'unknown')
-        file_type = file_info.get('type')
-        modified_time = file_info.get('modified_time')
+        file_token = file_info.get("file_token")
+        file_name = file_info.get("name", "unknown")
+        file_type = file_info.get("type")
+        modified_time = file_info.get("modified_time")
 
         # 检查是否已同步且未修改
         sync_key = file_token
         if sync_key in self.sync_state:
             cached = self.sync_state[sync_key]
-            if cached.get('modified_time') == modified_time:
+            if cached.get("modified_time") == modified_time:
                 logger.debug(f"文件未修改，跳过: {file_name}")
                 return False
 
@@ -394,8 +378,7 @@ class SyncManager:
             counter = 1
             while os.path.exists(save_path):
                 save_path = os.path.join(
-                    self.config.inbox_dir,
-                    f"{base}_{counter}{ext}"
+                    self.config.inbox_dir, f"{base}_{counter}{ext}"
                 )
                 counter += 1
 
@@ -406,10 +389,10 @@ class SyncManager:
 
         try:
             # 根据文件类型选择下载方式
-            if file_type in ['docx', 'sheet', 'bitable']:
-                export_type = self.FILE_TYPE_MAP.get(file_type, 'pdf')
+            if file_type in ["docx", "sheet", "bitable"]:
+                export_type = self.FILE_TYPE_MAP.get(file_type, "pdf")
                 _, ext = os.path.splitext(file_name)
-                export_path = save_path.replace(ext, f'.{export_type}')
+                export_path = save_path.replace(ext, f".{export_type}")
                 self.feishu.export_file(file_token, export_type, export_path)
                 save_path = export_path
             else:
@@ -417,9 +400,9 @@ class SyncManager:
 
             # 更新同步状态
             self.sync_state[sync_key] = {
-                'name': file_name,
-                'modified_time': modified_time,
-                'synced_at': datetime.now().isoformat()
+                "name": file_name,
+                "modified_time": modified_time,
+                "synced_at": datetime.now().isoformat(),
             }
 
             logger.info(f"✓ 同步成功: {file_name}")
@@ -434,10 +417,10 @@ class SyncManager:
 # 主程序
 # ============================================================
 def main():
-    parser = argparse.ArgumentParser(description='飞书云文档同步脚本')
-    parser.add_argument('--dry-run', action='store_true', help='测试模式，不实际下载')
-    parser.add_argument('--watch', action='store_true', help='监听模式，持续同步')
-    parser.add_argument('--interval', type=int, default=300, help='监听间隔（秒）')
+    parser = argparse.ArgumentParser(description="飞书云文档同步脚本")
+    parser.add_argument("--dry-run", action="store_true", help="测试模式，不实际下载")
+    parser.add_argument("--watch", action="store_true", help="监听模式，持续同步")
+    parser.add_argument("--interval", type=int, default=300, help="监听间隔（秒）")
 
     args = parser.parse_args()
 
@@ -478,6 +461,6 @@ def main():
         return False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     success = main()
     sys.exit(0 if success else 1)

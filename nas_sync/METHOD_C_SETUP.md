@@ -87,7 +87,7 @@ ps aux | grep watcher.py
 ### 第 1 步：检查依赖包
 
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 确保已安装所需包
 pip install -r requirements.txt
@@ -145,7 +145,7 @@ source ~/.zshrc
 
 ```bash
 export FEISHU_APP_SECRET='你的app_secret'
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 python feishu_sync_method_c.py --dry-run
 ```
 
@@ -207,24 +207,24 @@ crontab -e
 添加以下行：
 ```cron
 # 每小时的第 0 分钟执行一次飞书 Method C 同步
-0 * * * * cd /Users/dianchi/JW-Bot/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
+0 * * * * cd /Users/dianchi/DC-Agent/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
 ```
 
 ### 每 5 分钟同步一次
 
 ```cron
 # 每 5 分钟执行一次
-*/5 * * * * cd /Users/dianchi/JW-Bot/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
+*/5 * * * * cd /Users/dianchi/DC-Agent/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
 ```
 
 ### 查看日志
 
 ```bash
 # 实时查看
-tail -f /Users/dianchi/JW-Bot/nas_sync/feishu_sync_method_c.log
+tail -f /Users/dianchi/DC-Agent/nas_sync/feishu_sync_method_c.log
 
 # 查看最后 50 行
-tail -50 /Users/dianchi/JW-Bot/nas_sync/feishu_sync_method_c.log
+tail -50 /Users/dianchi/DC-Agent/nas_sync/feishu_sync_method_c.log
 ```
 
 ---
@@ -281,7 +281,7 @@ tail -50 /Users/dianchi/JW-Bot/nas_sync/feishu_sync_method_c.log
 
 ```bash
 # 删除状态文件（会重新处理所有消息）
-rm /Users/dianchi/JW-Bot/nas_sync/.feishu_method_c_state.json
+rm /Users/dianchi/DC-Agent/nas_sync/.feishu_method_c_state.json
 python feishu_sync_method_c.py
 ```
 
@@ -419,7 +419,7 @@ watcher.py 发现新文件
    ```bash
    # 确保 NAS 目录权限适当
    chmod 755 /Users/dianchi/nas_kb/inbox
-   chmod 700 /Users/dianchi/JW-Bot/nas_sync
+   chmod 700 /Users/dianchi/DC-Agent/nas_sync
    ```
 
 4. **日志管理**
@@ -467,12 +467,12 @@ A: 可以。按 `Ctrl+C` 停止 watch 模式，或从 cron 中删除任务。
 
 1. **日志文件**
    ```bash
-   tail -f /Users/dianchi/JW-Bot/nas_sync/feishu_sync_method_c.log
+   tail -f /Users/dianchi/DC-Agent/nas_sync/feishu_sync_method_c.log
    ```
 
 2. **同步状态**
    ```bash
-   cat /Users/dianchi/JW-Bot/nas_sync/.feishu_method_c_state.json
+   cat /Users/dianchi/DC-Agent/nas_sync/.feishu_method_c_state.json
    ```
 
 3. **Feishu 权限**

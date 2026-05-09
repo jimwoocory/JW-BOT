@@ -9,7 +9,7 @@
 ## ⚡ 30秒快速开始
 
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 1. 设置 App Secret
 export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU'
@@ -137,7 +137,7 @@ python feishu_sync_method_c.py --watch --interval 300
 
 ### Step 1: 设置环境
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU'
 ```
 

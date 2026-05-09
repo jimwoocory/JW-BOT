@@ -20,7 +20,7 @@
 
 ```bash
 # 1. 进入目录
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 2. 检查依赖
 pip install requests pyyaml
@@ -162,15 +162,15 @@ crontab -e
 
 # 添加以下行：
 # 每小时的第 0 分钟执行（例如 9:00, 10:00, 11:00）
-0 * * * * cd /Users/dianchi/JW-Bot/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
+0 * * * * cd /Users/dianchi/DC-Agent/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
 
 # 或每 5 分钟执行一次
-*/5 * * * * cd /Users/dianchi/JW-Bot/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
+*/5 * * * * cd /Users/dianchi/DC-Agent/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
 ```
 
 查看日志：
 ```bash
-tail -f /Users/dianchi/JW-Bot/nas_sync/feishu_sync_method_c.log
+tail -f /Users/dianchi/DC-Agent/nas_sync/feishu_sync_method_c.log
 ```
 
 ---
@@ -331,12 +331,12 @@ watch:
 
 **查看日志**：
 ```bash
-tail -f /Users/dianchi/JW-Bot/nas_sync/feishu_sync_method_c.log
+tail -f /Users/dianchi/DC-Agent/nas_sync/feishu_sync_method_c.log
 ```
 
 **完整文档**：
 ```bash
-cat /Users/dianchi/JW-Bot/nas_sync/METHOD_C_SETUP.md
+cat /Users/dianchi/DC-Agent/nas_sync/METHOD_C_SETUP.md
 ```
 
 **检查配置**：
@@ -375,7 +375,7 @@ cat config.yaml | tail -20
 
 ```bash
 export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU'
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 测试
 python feishu_sync_method_c.py --dry-run

@@ -112,7 +112,7 @@
 
 ```bash
 # 1. 进入目录
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 2. 设置 App Secret
 export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU'
@@ -230,7 +230,7 @@ nohup python feishu_sync_method_c.py --watch --interval 300 \
 crontab -e
 
 # 添加任务（例如：每小时检查一次）
-0 * * * * cd /Users/dianchi/JW-Bot/nas_sync && \
+0 * * * * cd /Users/dianchi/DC-Agent/nas_sync && \
   export FEISHU_APP_SECRET='...' && \
   python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
 ```
@@ -241,12 +241,12 @@ crontab -e
 
 ### 实时查看日志
 ```bash
-tail -f /Users/dianchi/JW-Bot/nas_sync/feishu_sync_method_c.log
+tail -f /Users/dianchi/DC-Agent/nas_sync/feishu_sync_method_c.log
 ```
 
 ### 查看同步状态
 ```bash
-cat /Users/dianchi/JW-Bot/nas_sync/.feishu_method_c_state.json | jq
+cat /Users/dianchi/DC-Agent/nas_sync/.feishu_method_c_state.json | jq
 ```
 
 ### 检查 NAS 文件
@@ -259,7 +259,7 @@ ls -la /Users/dianchi/nas_kb/inbox/中台运营项目/
 
 ### 查看 watcher.py 日志
 ```bash
-tail -f /Users/dianchi/JW-Bot/nas_sync/watcher.log
+tail -f /Users/dianchi/DC-Agent/nas_sync/watcher.log
 ```
 
 ---
@@ -306,7 +306,7 @@ A: 可以，建议使用不同的 cron 任务或后台进程
 ## 📁 文件结构
 
 ```
-/Users/dianchi/JW-Bot/nas_sync/
+/Users/dianchi/DC-Agent/nas_sync/
 ├── feishu_sync_method_c.py          # ⭐ 核心脚本
 ├── method_c_setup.py                # ⭐ 自动配置助手
 ├── method_c_config_template.yaml    # 配置模板

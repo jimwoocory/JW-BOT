@@ -6,7 +6,7 @@
 
 ## 📦 已生成的文件清单
 
-✅ 以下文件已生成到 `/Users/dianchi/JW-Bot/nas_sync/` 目录：
+✅ 以下文件已生成到 `/Users/dianchi/DC-Agent/nas_sync/` 目录：
 
 ### 核心脚本
 - [ ] ✅ `feishu_sync_method_c.py` - 核心同步脚本（1400+ 行，完全可执行）
@@ -30,7 +30,7 @@
 
 ```bash
 # 1.1 进入工作目录
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # ✓ 验证目录
 ls -la | grep feishu_sync_method_c
@@ -67,7 +67,7 @@ echo $FEISHU_APP_SECRET
 
 ```bash
 # 进入目录
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 运行自动配置工具
 python method_c_setup.py
@@ -146,7 +146,7 @@ echo $FEISHU_APP_SECRET
 **不下载任何文件，只验证配置**：
 
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 运行测试（--dry-run 表示测试模式）
 python feishu_sync_method_c.py --dry-run
@@ -208,7 +208,7 @@ ls /Users/dianchi/nas_kb/inbox/中台运营项目/
 #### 选项 A：监听模式（推荐，持续运行）
 
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 启动监听，每 5 分钟检查一次新消息
 python feishu_sync_method_c.py --watch --interval 300
@@ -231,7 +231,7 @@ python feishu_sync_method_c.py --watch --interval 300
 #### 选项 B：后台运行（推荐用于生产）
 
 ```bash
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 
 # 在后台运行，日志输出到文件
 nohup python feishu_sync_method_c.py --watch --interval 300 \
@@ -259,13 +259,13 @@ crontab -e
 
 # 在文件末尾添加以下行：
 # 每天 9 点执行一次
-0 9 * * * cd /Users/dianchi/JW-Bot/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
+0 9 * * * cd /Users/dianchi/DC-Agent/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
 
 # 或每小时执行一次
-0 * * * * cd /Users/dianchi/JW-Bot/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
+0 * * * * cd /Users/dianchi/DC-Agent/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
 
 # 或每 5 分钟执行一次
-*/5 * * * * cd /Users/dianchi/JW-Bot/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
+*/5 * * * * cd /Users/dianchi/DC-Agent/nas_sync && export FEISHU_APP_SECRET='CClhKDFnefk9rMNkreFGZgHemkTuKJIU' && python feishu_sync_method_c.py >> feishu_sync_method_c.log 2>&1
 ```
 
 验证 cron 任务：
@@ -293,7 +293,7 @@ crontab -l
 # 这是测试: https://xxx.feishu.cn/docx/your_doc_id
 
 # 7.2 运行同步（或等待 cron 执行）
-cd /Users/dianchi/JW-Bot/nas_sync
+cd /Users/dianchi/DC-Agent/nas_sync
 python feishu_sync_method_c.py
 
 # 7.3 检查文件是否下载到 NAS
@@ -375,7 +375,7 @@ ps aux | grep watcher.py
 
 ```bash
 # 1. 查看完整日志
-tail -50 /Users/dianchi/JW-Bot/nas_sync/feishu_sync_method_c.log
+tail -50 /Users/dianchi/DC-Agent/nas_sync/feishu_sync_method_c.log
 
 # 2. 查看当前配置
 grep -A 20 "^feishu:" config.yaml
