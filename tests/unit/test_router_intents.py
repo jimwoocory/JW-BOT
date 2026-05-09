@@ -4,6 +4,7 @@ Router 单元测试 — SessionRouter & IntentRouter.
 Task 1 — 对现有 SessionRouter 写完整覆盖测试。
 Task 1b — IntentRouter 完整单元测试。
 """
+
 import json
 import pytest
 from pathlib import Path
@@ -16,6 +17,12 @@ from astrbot.core.router import (
     _normalize,
     _parse_json_payload,
     _extract_prompt_from_message,
+)
+
+# Resolve router_config.yaml relative to the project root so the suite is
+# portable across machines (was previously hard-coded to a macOS user path).
+_ROUTER_CONFIG_PATH = (
+    Path(__file__).resolve().parents[2] / "astrbot" / "core" / "router_config.yaml"
 )
 from astrbot.plugins.hermes_bridge.router import (
     SessionRouter,
@@ -171,8 +178,12 @@ def test_get_or_create_session_different_users(router):
 
 def test_get_or_create_session_same_user_different_channel(router):
     """同一用户不同频道应创建不同会话。"""
-    user1 = PlatformUser(platform=PlatformType.TELEGRAM, user_id="tg1", channel_id="ch_a")
-    user2 = PlatformUser(platform=PlatformType.TELEGRAM, user_id="tg1", channel_id="ch_b")
+    user1 = PlatformUser(
+        platform=PlatformType.TELEGRAM, user_id="tg1", channel_id="ch_a"
+    )
+    user2 = PlatformUser(
+        platform=PlatformType.TELEGRAM, user_id="tg1", channel_id="ch_b"
+    )
     sid1 = router.get_or_create_session(user1)
     sid2 = router.get_or_create_session(user2)
     assert sid1 != sid2
@@ -369,7 +380,9 @@ def test_intent_to_dict():
 
 def test_rule_match_pattern_with_slash_prefix():
     """以 / 开头的 pattern 应使用前缀匹配。"""
-    rule = RouterRule(category="task", intent_type="task_new", confidence=0.99, pattern="/task new")
+    rule = RouterRule(
+        category="task", intent_type="task_new", confidence=0.99, pattern="/task new"
+    )
     assert rule.match("/task new 推广计划") is True
     assert rule.match("/task new") is True
     assert rule.match("/TASK NEW hello") is True  # case insensitive
@@ -378,7 +391,12 @@ def test_rule_match_pattern_with_slash_prefix():
 
 def test_rule_match_pattern_substring():
     """不以 / 开头的 pattern 应使用子串匹配。"""
-    rule = RouterRule(category="skill", intent_type="dreamina_image", confidence=0.97, pattern="生成图片")
+    rule = RouterRule(
+        category="skill",
+        intent_type="dreamina_image",
+        confidence=0.97,
+        pattern="生成图片",
+    )
     assert rule.match("帮我生成图片") is True
     assert rule.match("生成图片") is True
     assert rule.match("今天天气不错") is False
@@ -405,7 +423,12 @@ def test_rule_match_no_pattern_no_keywords():
 
 def test_rule_specificity_pattern():
     """有 pattern 时 specificity 返回 pattern 长度。"""
-    rule = RouterRule(category="task", intent_type="x", confidence=0.5, pattern="/task intake marketing_plan")
+    rule = RouterRule(
+        category="task",
+        intent_type="x",
+        confidence=0.5,
+        pattern="/task intake marketing_plan",
+    )
     assert rule.specificity == len("/task intake marketing_plan")
 
 
@@ -470,25 +493,33 @@ def test_parse_json_payload_non_dict():
 
 def test_extract_prompt_from_message_command_prefix():
     """_extract_prompt_from_message 应去除命令前缀。"""
-    result = _extract_prompt_from_message("生成图片 一只猫在屋顶", "生成图片", "dreamina_image")
+    result = _extract_prompt_from_message(
+        "生成图片 一只猫在屋顶", "生成图片", "dreamina_image"
+    )
     assert result == "一只猫在屋顶"
 
 
 def test_extract_prompt_from_message_polite_prefix():
     """_extract_prompt_from_message 应去除礼貌用语前缀。"""
-    result = _extract_prompt_from_message("帮我做一张图 海报风格", "做一张图", "dreamina_image")
+    result = _extract_prompt_from_message(
+        "帮我做一张图 海报风格", "做一张图", "dreamina_image"
+    )
     assert result == "海报风格"
 
 
 def test_extract_prompt_from_message_dreamina_replacements():
     """_extract_prompt_from_message 应替换 dreamina 动作短语。"""
-    result = _extract_prompt_from_message("生成图片 画一张风景", "生成图片", "dreamina_image")
+    result = _extract_prompt_from_message(
+        "生成图片 画一张风景", "生成图片", "dreamina_image"
+    )
     assert "画一张" not in result
 
 
 def test_extract_prompt_from_message_no_change():
     """_extract_prompt_from_message 对不匹配的消息应返回原文。"""
-    result = _extract_prompt_from_message("今天天气怎么样", "生成图片", "dreamina_image")
+    result = _extract_prompt_from_message(
+        "今天天气怎么样", "生成图片", "dreamina_image"
+    )
     assert result == "今天天气怎么样"
 
 
@@ -499,7 +530,7 @@ def test_extract_prompt_from_message_no_change():
 
 def test_intent_router_from_yaml(tmp_path):
     """IntentRouter.from_yaml 应正确加载配置文件。"""
-    config_path = Path("/Users/dianchi/DC-Agent/astrbot/core/router_config.yaml")
+    config_path = _ROUTER_CONFIG_PATH
     if config_path.exists():
         router = IntentRouter.from_yaml(config_path)
         assert isinstance(router, IntentRouter)
@@ -512,10 +543,20 @@ def test_intent_router_from_dict():
     config = {
         "fallback_threshold": 0.8,
         "task_intents": [
-            {"pattern": "/task new", "confidence": 0.99, "category": "task", "intent_type": "task_new"},
+            {
+                "pattern": "/task new",
+                "confidence": 0.99,
+                "category": "task",
+                "intent_type": "task_new",
+            },
         ],
         "skill_intents": [
-            {"pattern": "画图", "confidence": 0.9, "category": "skill", "intent_type": "draw"},
+            {
+                "pattern": "画图",
+                "confidence": 0.9,
+                "category": "skill",
+                "intent_type": "draw",
+            },
         ],
     }
     router = IntentRouter(config)
@@ -547,8 +588,7 @@ def test_intent_router_default_threshold():
 @pytest.fixture
 def intent_router():
     """使用实际配置文件创建 IntentRouter。"""
-    config_path = Path("/Users/dianchi/DC-Agent/astrbot/core/router_config.yaml")
-    return IntentRouter.from_yaml(config_path)
+    return IntentRouter.from_yaml(_ROUTER_CONFIG_PATH)
 
 
 @pytest.mark.asyncio
@@ -745,6 +785,7 @@ async def test_classify_rule_below_threshold(intent_router):
 @pytest.mark.asyncio
 async def test_llm_fallback_when_no_rule_matches():
     """无规则匹配且有 LLM provider 时应调用 LLM。"""
+
     async def mock_llm(system, prompt, context):
         return '{"category": "task", "intent_type": "marketing_plan", "confidence": 0.7, "workflow_kind": "marketing_plan"}'
 
@@ -762,6 +803,7 @@ async def test_llm_fallback_when_no_rule_matches():
 @pytest.mark.asyncio
 async def test_llm_fallback_code_block_json():
     """LLM 返回 code block JSON 时应正确解析。"""
+
     async def mock_llm(system, prompt, context):
         return '```json\n{"category": "skill", "intent_type": "dreamina_image", "confidence": 0.72}\n```'
 
@@ -779,6 +821,7 @@ async def test_llm_fallback_code_block_json():
 @pytest.mark.asyncio
 async def test_llm_returns_invalid_json():
     """LLM 返回无效 JSON 时应返回默认 intent。"""
+
     async def mock_llm(system, prompt, context):
         return "this is not json at all"
 
@@ -795,6 +838,7 @@ async def test_llm_returns_invalid_json():
 @pytest.mark.asyncio
 async def test_llm_returns_none():
     """LLM 返回 None 时应跳过 LLM 分支。"""
+
     async def mock_llm(system, prompt, context):
         return None
 
@@ -811,6 +855,7 @@ async def test_llm_returns_none():
 @pytest.mark.asyncio
 async def test_llm_no_system_prompt():
     """无 system_prompt 时应跳过 LLM 分支。"""
+
     async def mock_llm(system, prompt, context):
         return '{"category": "task"}'
 
@@ -827,8 +872,9 @@ async def test_llm_no_system_prompt():
 @pytest.mark.asyncio
 async def test_llm_returns_array():
     """LLM 返回数组而非对象时应返回 None。"""
+
     async def mock_llm(system, prompt, context):
-        return '[1, 2, 3]'
+        return "[1, 2, 3]"
 
     config = {
         "task_intents": [],
@@ -843,6 +889,7 @@ async def test_llm_returns_array():
 @pytest.mark.asyncio
 async def test_llm_beats_rule_when_higher_confidence():
     """LLM 返回的 confidence 高于规则时优先 LLM。"""
+
     async def mock_llm(system, prompt, context):
         return '{"category": "skill", "intent_type": "custom", "confidence": 0.95}'
 
@@ -861,12 +908,18 @@ async def test_llm_beats_rule_when_higher_confidence():
 @pytest.mark.asyncio
 async def test_rule_beats_llm_when_higher_confidence():
     """规则 confidence 高于 LLM 时优先规则。"""
+
     async def mock_llm(system, prompt, context):
         return '{"category": "skill", "intent_type": "custom", "confidence": 0.5}'
 
     config = {
         "task_intents": [
-            {"pattern": "/task new", "confidence": 0.99, "category": "task", "intent_type": "task_new"},
+            {
+                "pattern": "/task new",
+                "confidence": 0.99,
+                "category": "task",
+                "intent_type": "task_new",
+            },
         ],
         "skill_intents": [],
         "llm_fallback": {"system_prompt": "classify"},
@@ -900,13 +953,16 @@ async def test_transport_metadata_hermes_bridge(intent_router):
 @pytest.mark.asyncio
 async def test_transport_metadata_webhook_event(intent_router):
     """context 含 webhook_event 时应透传。"""
-    intent = await intent_router.classify("/task new", {"webhook_event": "message.created"})
+    intent = await intent_router.classify(
+        "/task new", {"webhook_event": "message.created"}
+    )
     assert intent.metadata.get("webhook_event") == "message.created"
 
 
 @pytest.mark.asyncio
 async def test_llm_metadata_includes_transport(intent_router):
     """LLM 分类结果也应包含 transport metadata。"""
+
     async def mock_llm(system, prompt, context):
         return '{"category": "task", "intent_type": "custom", "confidence": 0.8}'
 
@@ -916,7 +972,9 @@ async def test_llm_metadata_includes_transport(intent_router):
         "llm_fallback": {"system_prompt": "classify"},
     }
     router = IntentRouter(config, llm_provider=mock_llm)
-    intent = await router.classify("hello", {"platform_id": "qqbot", "webhook_event": "test"})
+    intent = await router.classify(
+        "hello", {"platform_id": "qqbot", "webhook_event": "test"}
+    )
     assert intent.metadata.get("platform") == "qqbot"
     assert intent.metadata.get("matched_by") == "llm"
 

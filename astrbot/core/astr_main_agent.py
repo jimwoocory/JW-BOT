@@ -1149,6 +1149,60 @@ def _get_compress_provider(
     return provider
 
 
+def _lossless_enabled(config: MainAgentBuildConfig) -> bool:
+    """Return True if lossless context is enabled via env var or config flag.
+
+    Restored after the v4.24.2 upstream merge silently dropped local
+    lossless-context wiring. The env var takes precedence over the
+    ``MainAgentBuildConfig.lossless_context_enabled`` field so an operator
+    can flip the feature on/off without redeploying.
+    """
+    env_val = os.environ.get("ASTRBOT_EXPERIMENTAL_LOSSLESS_CONTEXT", "").lower()
+    if env_val in ("1", "true", "yes", "on"):
+        return True
+    return config.lossless_context_enabled
+
+
+def _build_custom_compressor(
+    config: MainAgentBuildConfig,
+    plugin_context: Context,
+    provider: Provider | None = None,
+    conversation_id: str | None = None,
+):
+    """Construct the LosslessSummaryCompressor for the active conversation.
+
+    Returns ``None`` when lossless context is disabled or when the conversation
+    manager has no sidecar store wired (older lifecycle paths). Imports are
+    deferred so ``astr_main_agent`` does not pull in the lossless modules at
+    import time when the feature is off.
+    """
+    if not _lossless_enabled(config):
+        return None
+
+    from astrbot.core.agent.context.compressor import TruncateByTurnsCompressor
+    from astrbot.core.agent.context.lossless_assembler import LosslessAssembler
+    from astrbot.core.agent.context.lossless_compressor import (
+        LosslessSummaryCompressor,
+    )
+
+    store = getattr(plugin_context.conversation_manager, "lossless_store", None)
+    assembler = LosslessAssembler(store) if store is not None else None
+    compress_provider = _get_compress_provider(config, plugin_context) or provider
+
+    return LosslessSummaryCompressor(
+        provider=compress_provider,
+        keep_recent=config.llm_compress_keep_recent,
+        instruction_text=config.llm_compress_instruction or None,
+        message_threshold=config.lossless_compact_message_threshold,
+        fallback_compressor=TruncateByTurnsCompressor(
+            truncate_turns=config.dequeue_context_length,
+        ),
+        store=store,
+        conversation_id=conversation_id,
+        assembler=assembler,
+    )
+
+
 def _get_fallback_chat_providers(
     provider: Provider, plugin_context: Context, provider_settings: dict
 ) -> list[Provider]:
@@ -1459,6 +1513,17 @@ async def build_main_agent(
         llm_compress_keep_recent=config.llm_compress_keep_recent,
         llm_compress_provider=_get_compress_provider(config, plugin_context),
         truncate_turns=config.dequeue_context_length,
+        # Restored after v4.24.2 merge: wire the lossless compressor into
+        # the AgentRunner so the lossless_context_enabled flag actually
+        # takes effect end-to-end.
+        custom_compressor=_build_custom_compressor(
+            config,
+            plugin_context,
+            provider=provider,
+            conversation_id=(
+                req.conversation.cid if getattr(req, "conversation", None) else None
+            ),
+        ),
         enforce_max_turns=config.max_context_length,
         tool_schema_mode=config.tool_schema_mode,
         fallback_providers=_get_fallback_chat_providers(
