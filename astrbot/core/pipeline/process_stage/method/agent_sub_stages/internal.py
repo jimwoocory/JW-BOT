@@ -2,6 +2,7 @@
 
 import asyncio
 import base64
+import re
 from collections.abc import AsyncGenerator
 from dataclasses import replace
 
@@ -13,12 +14,12 @@ from astrbot.core.agent.message import (
     dump_messages_with_checkpoints,
 )
 from astrbot.core.agent.response import AgentStats
-from astrbot.core.harness.contracts import HARNESS_TERMINAL_STATUSES
 from astrbot.core.astr_main_agent import (
     MainAgentBuildConfig,
     MainAgentBuildResult,
     build_main_agent,
 )
+from astrbot.core.harness.contracts import HARNESS_TERMINAL_STATUSES
 from astrbot.core.message.components import File, Image, Record, Video
 from astrbot.core.message.message_event_result import (
     MessageChain,
@@ -532,7 +533,11 @@ class InternalAgentSubStage(Stage):
         event: AstrMessageEvent,
         final_resp: LLMResponse | None,
     ) -> None:
-        """完成当前会话的活跃 Harness 任务并触发记忆提升。"""
+        """完成当前会话的活跃 Harness 任务并触发记忆提升。
+
+        Sensor 硬化（Phase 0.2）：识别 LLM 错误响应，路由到 fail_task 而非 complete_task，
+        避免错误被作为 task_outcome 晋升进长期记忆。
+        """
         if not final_resp or not (final_resp.completion_text or "").strip():
             return
         plugin_ctx = self.ctx.plugin_manager.context
@@ -541,16 +546,35 @@ class InternalAgentSubStage(Stage):
         task = await plugin_ctx.get_current_harness_task(event.unified_msg_origin)
         if task is None or task.status in HARNESS_TERMINAL_STATUSES:
             return
-        summary = (final_resp.completion_text or "").strip()[:200]
+
+        text = (final_resp.completion_text or "").strip()
+        quality = _classify_response_quality(final_resp, text)
+
+        if quality == "error":
+            try:
+                await plugin_ctx.harness_engine.fail_task(
+                    task.task_id,
+                    reason=text[:200],
+                )
+                logger.info(
+                    "Harness task %s marked failed by sensor (LLM error response)",
+                    task.task_id,
+                )
+            except Exception:
+                logger.warning(
+                    "Failed to fail harness task %s", task.task_id, exc_info=True
+                )
+            return
+
+        summary = _extract_summary(text)
         try:
             await plugin_ctx.harness_engine.complete_task(
                 task.task_id,
                 result={
                     "summary": summary,
-                    "response_preview": (final_resp.completion_text or "").strip()[
-                        :500
-                    ],
+                    "response_preview": text[:500],
                     "source": "internal_agent",
+                    "quality": quality,
                 },
             )
             logger.debug(
@@ -568,6 +592,55 @@ class InternalAgentSubStage(Stage):
 # these hosts are base64 encoded
 BLOCKED = {"dGZid2h2d3IuY2xvdWQuc2VhbG9zLmlv", "a291cmljaGF0"}
 decoded_blocked = [base64.b64decode(b).decode("utf-8") for b in BLOCKED]
+
+
+# ── Harness sensor helpers (Phase 0.2) ────────────────────────────────────────
+
+# 已知的上游 LLM 错误特征。命中任意一条即认为本次响应不可作为任务成果。
+_LLM_ERROR_PATTERNS: tuple[str, ...] = (
+    "All chat models failed",
+    "BadRequestError",
+    "RateLimitError",
+    "AuthenticationError",
+    "APIConnectionError",
+    "Connection error",
+    "Error code: 4",
+    "Error code: 5",
+)
+
+# 摘要清洗：剥离常见 markdown 装饰，避免 summary 字段被 # / ** / > 占位。
+_MD_HEADER_RE = re.compile(r"^\s{0,3}#{1,6}\s*", re.MULTILINE)
+_MD_QUOTE_RE = re.compile(r"^\s{0,3}>\s*", re.MULTILINE)
+_MD_BOLD_RE = re.compile(r"\*\*([^*\n]+)\*\*")
+_MD_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]+\)")
+
+
+def _classify_response_quality(resp: LLMResponse, text: str) -> str:
+    """将 LLM 响应分类为 success / error。
+
+    供 Harness sensor 决定走 complete_task 还是 fail_task。
+    """
+    if getattr(resp, "role", None) == "err":
+        return "error"
+    head = text[:400]
+    for pattern in _LLM_ERROR_PATTERNS:
+        if pattern in head:
+            return "error"
+    return "success"
+
+
+def _extract_summary(text: str, max_len: int = 200) -> str:
+    """从 LLM 响应里抽出干净的摘要（剥离 markdown 装饰、取首段）。"""
+    cleaned = _MD_LINK_RE.sub(r"\1", text)
+    cleaned = _MD_BOLD_RE.sub(r"\1", cleaned)
+    cleaned = _MD_HEADER_RE.sub("", cleaned)
+    cleaned = _MD_QUOTE_RE.sub("", cleaned)
+    cleaned = cleaned.strip()
+    paragraphs = [p.strip() for p in cleaned.split("\n\n") if p.strip()]
+    candidate = paragraphs[0] if paragraphs else cleaned
+    if len(candidate) < 20 and len(paragraphs) >= 2:
+        candidate = paragraphs[1]
+    return candidate[:max_len]
 
 
 async def _record_internal_agent_stats(
