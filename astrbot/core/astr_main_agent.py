@@ -173,6 +173,14 @@ class MainAgentBuildConfig:
     timezone: str | None = None
     max_quoted_fallback_images: int = 20
     """Maximum number of images injected from quoted-message fallback extraction."""
+    lossless_context_enabled: bool = False
+    """Enable lossless context compaction (Phase 1C/1D).
+    When True, the LosslessSummaryCompressor is used and summary_leaf nodes are
+    persisted to the sidecar store.  The environment variable
+    ASTRBOT_EXPERIMENTAL_LOSSLESS_CONTEXT=1 takes precedence over this field."""
+    lossless_compact_message_threshold: int = 200
+    """Compact lossless context when the raw non-system message count reaches
+    this threshold, even if the model context window is still very large."""
 
 
 @dataclass(slots=True)
