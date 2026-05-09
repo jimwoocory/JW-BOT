@@ -15,7 +15,7 @@ _最后更新：2026-04-16_
 ## 待开发项（按优先级）
 
 ### P0 — Harness Phase 1（核心任务）
-参考 `/Users/dianchi/JW-Bot/harness-engineering-phase1-plan.md`
+参考 `/Users/dianchi/DC-Agent/harness-engineering-phase1-plan.md`
 1. `orchestrator.py` — 任务执行编排器
 2. `tool_interceptor.py` — 工具调用拦截与验证
 3. `workflow_engine.py` — 工作流执行引擎
@@ -28,7 +28,7 @@ _最后更新：2026-04-16_
 
 ### P2 — AstrBot 系统观察
 - 定期读取 astrbot.log，识别员工频繁遇到的问题
-- 将观察结果记录到 `/Users/dianchi/JW-Bot/hermes-workspace/observations/`
+- 将观察结果记录到 `/Users/dianchi/DC-Agent/hermes-workspace/observations/`
 
 ## 观察到的问题模式
 

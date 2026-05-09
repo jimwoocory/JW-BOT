@@ -1,7 +1,18 @@
 model:
-  default: minimax/MiniMax-M2.7-highspeed
-  provider: custom
-  base_url: https://minimax.a7m.com.cn/v1
+  default: grok-4-20-reasoning
+  provider: aihubmix
+
+providers:
+  aihubmix:
+    name: Aihubmix
+    api: https://aihubmix.com/v1
+    transport: openai_chat
+    key_env: AIHUBMIX_API_KEY
+  ollama-local:
+    name: Ollama Local
+    api: http://localhost:11434/v1
+    transport: openai_chat
+    key_env: OLLAMA_API_KEY
 smart_model_routing:
   enabled: false
 terminal:
@@ -168,7 +179,31 @@ platforms:
             {brief}
 
 
-            请完整执行这个任务，生成详细的工作方案或执行结果。使用你的工具和知识库（如有配置）。
+            ## 执行规则
+
+
+            **如果 workflow_kind 是 marketing_plan：**
+
+            使用 ClawTeam 召集三人并行研究团队来完成此任务。
+
+            你的 Skill 文件位于 ~/.hermes/skills/marketing/clawteam-marketing/SKILL.md，
+
+            请先读取该文件，然后严格按照其中的 Phase 1 → 2 → 3 → 4 流程执行：
+
+            1. 创建 jw-marketing 团队（clawteam team create）
+
+            2. 为三个角色各建任务（researcher / analyst / strategist）
+
+            3. 并行 spawn 三个 Hermes worker
+
+            4. 等待完成后读取三份 output 文件
+
+            5. 合并成一份完整营销策划报告输出
+
+            **其他 workflow_kind（project_followup / content_delivery / approval_request）：**
+
+            直接完整执行任务，生成详细的工作方案或执行结果。使用你的工具和知识库。
+
 
             完成后直接输出结果内容，不需要说明这是任务回复。
 

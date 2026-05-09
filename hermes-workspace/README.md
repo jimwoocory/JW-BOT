@@ -17,7 +17,7 @@ Hermes 通过 hermes_bridge 接收来自「癫池-测试」频道的消息。
 
 ## 关键路径
 
-- AstrBot 代码：`/Users/dianchi/JW-Bot/`
-- 运行日志：`/Users/dianchi/JW-Bot/astrbot.log`
-- Harness 核心：`/Users/dianchi/JW-Bot/astrbot/core/harness/`
-- Hermes 记忆：`/Users/dianchi/JW-Bot/hermes-config/memories/`
+- AstrBot 代码：`/Users/dianchi/DC-Agent/`
+- 运行日志：`/Users/dianchi/DC-Agent/astrbot.log`
+- Harness 核心：`/Users/dianchi/DC-Agent/astrbot/core/harness/`
+- Hermes 记忆：`/Users/dianchi/DC-Agent/hermes-config/memories/`

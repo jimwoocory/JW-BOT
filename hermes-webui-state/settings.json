@@ -1,6 +1,6 @@
 {
   "default_model": "MiniMax-M2.7-highspeed",
-  "default_workspace": "/Users/dianchi/JW-Bot/hermes-webui-state/workspace",
+  "default_workspace": "/Users/dianchi/DC-Agent/hermes-webui-state/workspace",
   "onboarding_completed": true,
   "send_key": "enter",
   "show_token_usage": false,
@@ -22,6 +22,6 @@
     "default": "MiniMax-M2.7-highspeed"
   },
   "workspace": {
-    "path": "/Users/dianchi/JW-Bot"
+    "path": "/Users/dianchi/DC-Agent"
   }
 }

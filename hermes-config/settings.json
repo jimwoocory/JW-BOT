@@ -1,6 +1,6 @@
 {
   "default_model": "aihubmix/gpt-5.4-nano",
-  "default_workspace": "/Users/dianchi/JW-Bot/hermes-workspace",
+  "default_workspace": "/Users/dianchi/DC-Agent/hermes-workspace",
   "onboarding_completed": false,
   "send_key": "enter",
   "show_token_usage": false,
