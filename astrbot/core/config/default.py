@@ -1,11 +1,11 @@
 """如需修改配置，请在 `data/cmd_config.json` 中修改或者在管理面板中可视化修改。"""
 
 import os
-from typing import Any, TypedDict
 
+from astrbot.core.computer.booters.cua_defaults import CUA_DEFAULT_CONFIG
 from astrbot.core.utils.astrbot_path import get_astrbot_data_path
 
-VERSION = "4.22.3"
+VERSION = "4.24.2"
 DB_PATH = os.path.join(get_astrbot_data_path(), "data_v4.db")
 PERSONAL_WECHAT_CONFIG_METADATA = {
     "weixin_oc_base_url": {
@@ -129,13 +129,12 @@ DEFAULT_CONFIG = {
         ),
         "llm_compress_keep_recent": 6,
         "llm_compress_provider_id": "",
-        "lossless_context_enabled": False,
-        "lossless_compact_message_threshold": 200,
         "max_context_length": -1,
         "dequeue_context_length": 1,
         "streaming_response": False,
         "show_tool_use_status": False,
         "show_tool_call_result": False,
+        "buffer_intermediate_messages": False,
         "sanitize_context_by_modalities": False,
         "max_quoted_fallback_images": 20,
         "quoted_message_parser": {
@@ -176,6 +175,12 @@ DEFAULT_CONFIG = {
             "shipyard_neo_access_token": "",
             "shipyard_neo_profile": "python-default",
             "shipyard_neo_ttl": 3600,
+            "cua_image": CUA_DEFAULT_CONFIG["image"],
+            "cua_os_type": CUA_DEFAULT_CONFIG["os_type"],
+            "cua_ttl": CUA_DEFAULT_CONFIG["ttl"],
+            "cua_telemetry_enabled": CUA_DEFAULT_CONFIG["telemetry_enabled"],
+            "cua_local": CUA_DEFAULT_CONFIG["local"],
+            "cua_api_key": CUA_DEFAULT_CONFIG["api_key"],
         },
         "image_compress_enabled": True,
         "image_compress_options": {
@@ -287,24 +292,6 @@ DEFAULT_CONFIG = {
     "disable_builtin_commands": False,
 }
 
-
-class ChatProviderTemplate(TypedDict):
-    id: str
-    provider_source_id: str
-    model: str
-    modalities: list
-    custom_extra_body: dict[str, Any]
-    max_context_tokens: int
-
-
-CHAT_PROVIDER_TEMPLATE = {
-    "id": "",
-    "provide_source_id": "",
-    "model": "",
-    "modalities": [],
-    "custom_extra_body": {},
-    "max_context_tokens": 0,
-}
 
 """
 AstrBot v3 时代的配置元数据，目前仅承担以下功能：
@@ -456,6 +443,7 @@ CONFIG_METADATA_2 = {
                         "discord_proxy": "",
                         "discord_command_register": True,
                         "discord_activity_name": "",
+                        "discord_allow_bot_messages": False,
                     },
                     "Misskey": {
                         "id": "misskey",
@@ -783,7 +771,7 @@ CONFIG_METADATA_2 = {
                     "appid": {
                         "description": "appid",
                         "type": "string",
-                        "hint": "必填项。QQ 官方机器人平台的 appid。如何获取请参考文档。",
+                        "hint": "必填项。当前消息平台的 AppID。如何获取请参考对应平台接入文档。",
                     },
                     "secret": {
                         "description": "secret",
@@ -920,6 +908,11 @@ CONFIG_METADATA_2 = {
                         "description": "Discord 活动名称",
                         "type": "string",
                         "hint": "可选的 Discord 活动名称。留空则不设置活动。",
+                    },
+                    "discord_allow_bot_messages": {
+                        "description": "允许接收机器人消息",
+                        "type": "bool",
+                        "hint": "启用后，AstrBot 将接收来自其他 Discord 机器人的消息。适用于机器人间通信场景（如消息转发）。默认关闭。",
                     },
                     "port": {
                         "description": "回调服务器端口",
@@ -1202,7 +1195,7 @@ CONFIG_METADATA_2 = {
                         "provider_type": "chat_completion",
                         "enable": True,
                         "key": [],
-                        "api_base": "https://api.kimi.com/coding/",
+                        "api_base": "https://api.kimi.com/coding",
                         "timeout": 120,
                         "proxy": "",
                         "custom_headers": {"User-Agent": "claude-code/0.1.0"},
@@ -1231,6 +1224,19 @@ CONFIG_METADATA_2 = {
                         "timeout": 120,
                         "proxy": "",
                         "custom_headers": {},
+                    },
+                    "MiniMax Token Plan": {
+                        "id": "minimax-token-plan",
+                        "provider": "minimax-token-plan",
+                        "type": "minimax_token_plan",
+                        "provider_type": "chat_completion",
+                        "enable": True,
+                        "key": [],
+                        "api_base": "https://api.minimaxi.com/anthropic",
+                        "timeout": 120,
+                        "proxy": "",
+                        "custom_headers": {"User-Agent": "claude-code/0.1.0"},
+                        "anth_thinking_config": {"type": "", "budget": 0, "effort": ""},
                     },
                     "xAI": {
                         "id": "xai",
@@ -1945,13 +1951,13 @@ CONFIG_METADATA_2 = {
                         "options": ["text", "image", "audio", "tool_use"],
                         "labels": ["文本", "图像", "音频", "工具使用"],
                         "render_type": "checkbox",
-                        "hint": "模型支持的模态。如所填写的模型不支持图像，请取消勾选图像。",
+                        "hint": "模型支持的模态及能力。",
                     },
                     "custom_headers": {
-                        "description": "自定义添加请求头",
+                        "description": "自定义请求头",
                         "type": "dict",
                         "items": {},
-                        "hint": "此处添加的键值对将被合并到 OpenAI SDK 的 default_headers 中，用于自定义 HTTP 请求头。值必须为字符串。",
+                        "hint": "此处添加的键值对将被合并到 OpenAI SDK 的 default_headers 中，用于自定义 HTTP 请求头。",
                     },
                     "ollama_disable_thinking": {
                         "description": "关闭思考模式",
@@ -1962,7 +1968,7 @@ CONFIG_METADATA_2 = {
                         "description": "自定义请求体参数",
                         "type": "dict",
                         "items": {},
-                        "hint": "用于在请求时添加额外的参数，如 temperature、top_p、max_tokens 等。",
+                        "hint": "用于在请求时添加额外的参数，如 temperature, top_p, max_tokens, reasoning_effort 等。",
                         "template_schema": {
                             "temperature": {
                                 "name": "Temperature",
@@ -2605,7 +2611,7 @@ CONFIG_METADATA_2 = {
                     "max_context_tokens": {
                         "description": "模型上下文窗口大小",
                         "type": "int",
-                        "hint": "模型最大上下文 Token 大小。如果为 0，则会自动从模型元数据填充（如有），也可手动修改。",
+                        "hint": "模型最大上下文 Token 大小。如果为 0，则会自动从模型元数据填充（如有）",
                     },
                     "dify_api_key": {
                         "description": "API Key",
@@ -2667,12 +2673,12 @@ CONFIG_METADATA_2 = {
                     "deerflow_assistant_id": {
                         "description": "Assistant ID",
                         "type": "string",
-                        "hint": "LangGraph assistant_id，默认为 lead_agent。",
+                        "hint": "DeerFlow 2.0 LangGraph assistant_id，默认为 lead_agent。",
                     },
                     "deerflow_model_name": {
                         "description": "模型名称覆盖",
                         "type": "string",
-                        "hint": "可选。覆盖 DeerFlow 默认模型（对应 runtime context 的 model_name）。",
+                        "hint": "可选。覆盖 DeerFlow 默认模型（对应运行时 configurable 的 model_name）。",
                     },
                     "deerflow_thinking_enabled": {
                         "description": "启用思考模式",
@@ -2681,17 +2687,17 @@ CONFIG_METADATA_2 = {
                     "deerflow_plan_mode": {
                         "description": "启用计划模式",
                         "type": "bool",
-                        "hint": "对应 DeerFlow 的 is_plan_mode。",
+                        "hint": "对应 DeerFlow 2.0 运行时 configurable 的 is_plan_mode。",
                     },
                     "deerflow_subagent_enabled": {
                         "description": "启用子智能体",
                         "type": "bool",
-                        "hint": "对应 DeerFlow 的 subagent_enabled。",
+                        "hint": "对应 DeerFlow 2.0 运行时 configurable 的 subagent_enabled。",
                     },
                     "deerflow_max_concurrent_subagents": {
                         "description": "子智能体最大并发数",
                         "type": "int",
-                        "hint": "对应 DeerFlow 的 max_concurrent_subagents。仅在启用子智能体时生效，默认 3。",
+                        "hint": "对应 DeerFlow 2.0 运行时 configurable 的 max_concurrent_subagents。仅在启用子智能体时生效，默认 3。",
                     },
                     "deerflow_recursion_limit": {
                         "description": "递归深度上限",
@@ -2758,6 +2764,9 @@ CONFIG_METADATA_2 = {
                         "type": "bool",
                     },
                     "show_tool_call_result": {
+                        "type": "bool",
+                    },
+                    "buffer_intermediate_messages": {
                         "type": "bool",
                     },
                     "unsupported_streaming_strategy": {
@@ -3181,6 +3190,7 @@ CONFIG_METADATA_3 = {
                             "baidu_ai_search",
                             "bocha",
                             "brave",
+                            "firecrawl",
                         ],
                         "condition": {
                             "provider_settings.web_search": True,
@@ -3213,6 +3223,16 @@ CONFIG_METADATA_3 = {
                         "hint": "可添加多个 Key 进行轮询。",
                         "condition": {
                             "provider_settings.websearch_provider": "brave",
+                            "provider_settings.web_search": True,
+                        },
+                    },
+                    "provider_settings.websearch_firecrawl_key": {
+                        "description": "Firecrawl API Key",
+                        "type": "list",
+                        "items": {"type": "string"},
+                        "hint": "可添加多个 Key 进行轮询。",
+                        "condition": {
+                            "provider_settings.websearch_provider": "firecrawl",
                             "provider_settings.web_search": True,
                         },
                     },
@@ -3257,8 +3277,8 @@ CONFIG_METADATA_3 = {
                     "provider_settings.sandbox.booter": {
                         "description": "沙箱环境驱动器",
                         "type": "string",
-                        "options": ["shipyard_neo", "shipyard"],
-                        "labels": ["Shipyard Neo", "Shipyard"],
+                        "options": ["shipyard_neo", "shipyard", "cua"],
+                        "labels": ["Shipyard Neo", "Shipyard", "CUA"],
                         "condition": {
                             "provider_settings.computer_use_runtime": "sandbox",
                         },
@@ -3297,6 +3317,64 @@ CONFIG_METADATA_3 = {
                         "condition": {
                             "provider_settings.computer_use_runtime": "sandbox",
                             "provider_settings.sandbox.booter": "shipyard_neo",
+                        },
+                    },
+                    "provider_settings.sandbox.cua_image": {
+                        "description": "CUA Image",
+                        "type": "string",
+                        "hint": "CUA 沙箱镜像/系统类型，默认 linux。可填写 linux、macos、windows、android，具体取决于 CUA SDK 支持。",
+                        "condition": {
+                            "provider_settings.computer_use_runtime": "sandbox",
+                            "provider_settings.sandbox.booter": "cua",
+                        },
+                    },
+                    "provider_settings.sandbox.cua_os_type": {
+                        "description": "CUA OS Type",
+                        "type": "string",
+                        "options": ["linux", "macos", "windows", "android"],
+                        "labels": ["Linux", "macOS", "Windows", "Android"],
+                        "hint": "CUA 沙箱操作系统类型，默认 linux。",
+                        "condition": {
+                            "provider_settings.computer_use_runtime": "sandbox",
+                            "provider_settings.sandbox.booter": "cua",
+                        },
+                    },
+                    "provider_settings.sandbox.cua_ttl": {
+                        "description": "CUA Sandbox TTL",
+                        "type": "int",
+                        "hint": "CUA 沙箱生存时间（秒）。当前作为会话配置保存，具体生效取决于 CUA SDK。",
+                        "condition": {
+                            "provider_settings.computer_use_runtime": "sandbox",
+                            "provider_settings.sandbox.booter": "cua",
+                        },
+                    },
+                    "provider_settings.sandbox.cua_telemetry_enabled": {
+                        "description": "CUA Telemetry",
+                        "type": "bool",
+                        "hint": "是否允许 CUA SDK 发送遥测数据。默认关闭。",
+                        "condition": {
+                            "provider_settings.computer_use_runtime": "sandbox",
+                            "provider_settings.sandbox.booter": "cua",
+                        },
+                    },
+                    "provider_settings.sandbox.cua_local": {
+                        "description": "CUA Local Sandbox",
+                        "type": "bool",
+                        "hint": "是否优先使用 CUA 本地沙箱。默认开启，避免云端沙箱要求 CUA_API_KEY。关闭后可使用 CUA 云端沙箱。",
+                        "condition": {
+                            "provider_settings.computer_use_runtime": "sandbox",
+                            "provider_settings.sandbox.booter": "cua",
+                        },
+                    },
+                    "provider_settings.sandbox.cua_api_key": {
+                        "description": "CUA API Key",
+                        "type": "string",
+                        "hint": "CUA 云端沙箱 API Key。仅在关闭本地沙箱时需要。也可以通过 CUA_API_KEY 环境变量提供。",
+                        "obvious_hint": True,
+                        "condition": {
+                            "provider_settings.computer_use_runtime": "sandbox",
+                            "provider_settings.sandbox.booter": "cua",
+                            "provider_settings.sandbox.cua_local": False,
                         },
                     },
                     "provider_settings.sandbox.shipyard_endpoint": {
@@ -3441,24 +3519,16 @@ CONFIG_METADATA_3 = {
                         "description": "用于上下文压缩的模型提供商 ID",
                         "type": "string",
                         "_special": "select_provider",
-                        "hint": "留空时将降级为按对话轮数截断的策略。",
+                        "hint": "留空时将降级为“按对话轮数截断”的策略。",
                         "condition": {
                             "provider_settings.context_limit_reached_strategy": "llm_compress",
                             "provider_settings.agent_runner_type": "local",
                         },
                     },
-                    "provider_settings.lossless_context_enabled": {
-                        "description": "启用无损上下文压缩（实验性）",
-                        "type": "bool",
-                        "hint": "开启后压缩结果会持久化到 sidecar 数据库，支持历史召回。也可通过环境变量 ASTRBOT_EXPERIMENTAL_LOSSLESS_CONTEXT=1 启用。",
-                        "condition": {
-                            "provider_settings.agent_runner_type": "local",
-                        },
-                    },
-                    "provider_settings.lossless_compact_message_threshold": {
-                        "description": "无损压缩消息阈值",
+                    "provider_settings.fallback_max_context_tokens": {
+                        "description": "上下文窗口兜底值",
                         "type": "int",
-                        "hint": "当非 system 消息数达到这个阈值时，即使模型上下文窗口很大，也会触发一次 lossless compaction。设为 0 表示仅按 token 压力触发。",
+                        "hint": "当 max_context_tokens 为 0 且模型不在内置元数据中时，使用此值作为上下文窗口大小。默认 128000。",
                         "condition": {
                             "provider_settings.agent_runner_type": "local",
                         },
@@ -3542,6 +3612,15 @@ CONFIG_METADATA_3 = {
                             "provider_settings.show_tool_use_status": True,
                         },
                     },
+                    "provider_settings.buffer_intermediate_messages": {
+                        "description": "合并 Agent 中间消息",
+                        "type": "bool",
+                        "hint": "开启后，非流式模式下多步工具调用过程中产生的中间文本将缓冲，待 Agent 完成后合并为一条回复发送。",
+                        "condition": {
+                            "provider_settings.agent_runner_type": "local",
+                            "provider_settings.streaming_response": False,
+                        },
+                    },
                     "provider_settings.sanitize_context_by_modalities": {
                         "description": "按模型能力清理历史上下文",
                         "type": "bool",
@@ -3579,11 +3658,6 @@ CONFIG_METADATA_3 = {
                         "type": "string",
                         "hint": "如果唤醒前缀为 /, 额外聊天唤醒前缀为 chat，则需要 /chat 才会触发 LLM 请求",
                     },
-                    "provider_settings.prompt_prefix": {
-                        "description": "用户提示词",
-                        "type": "string",
-                        "hint": "可使用 {{prompt}} 作为用户输入的占位符。如果不输入占位符则代表添加在用户输入的前面。",
-                    },
                     "provider_settings.image_compress_enabled": {
                         "description": "启用图片压缩",
                         "type": "bool",
@@ -3606,6 +3680,12 @@ CONFIG_METADATA_3 = {
                             "provider_settings.image_compress_enabled": True,
                         },
                         "slider": {"min": 1, "max": 100, "step": 1},
+                    },
+                    "provider_settings.prompt_prefix": {
+                        "description": "用户提示词",
+                        "type": "string",
+                        "hint": "可使用 {{prompt}} 作为用户输入的占位符。如果不输入占位符则代表添加在用户输入的前面。",
+                        "collapsed": True,
                     },
                     "provider_tts_settings.dual_output": {
                         "description": "开启 TTS 时同时输出语音和文字内容",

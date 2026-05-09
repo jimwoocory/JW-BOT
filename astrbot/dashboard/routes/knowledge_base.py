@@ -132,6 +132,13 @@ class KnowledgeBaseRoute(Route):
 
         return _callback
 
+    @staticmethod
+    def _format_failed_doc_error(file_name: str, error: Exception) -> str:
+        message = str(error).strip() or "上传失败：发生未知错误。"
+        if message.startswith(file_name):
+            return message
+        return f"{file_name}: {message}"
+
     async def _background_upload_task(
         self,
         task_id: str,
@@ -195,7 +202,12 @@ class KnowledgeBaseRoute(Route):
                 except Exception as e:
                     logger.error(f"上传文档 {file_info['file_name']} 失败: {e}")
                     failed_docs.append(
-                        {"file_name": file_info["file_name"], "error": str(e)},
+                        {
+                            "file_name": file_info["file_name"],
+                            "error": self._format_failed_doc_error(
+                                file_info["file_name"], e
+                            ),
+                        },
                     )
 
             # 更新任务完成状态
@@ -284,7 +296,10 @@ class KnowledgeBaseRoute(Route):
                 except Exception as e:
                     logger.error(f"导入文档 {file_name} 失败: {e}")
                     failed_docs.append(
-                        {"file_name": file_name, "error": str(e)},
+                        {
+                            "file_name": file_name,
+                            "error": self._format_failed_doc_error(file_name, e),
+                        },
                     )
 
             # 更新任务完成状态

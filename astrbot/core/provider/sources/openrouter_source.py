@@ -21,3 +21,4 @@ class ProviderOpenRouter(ProviderOpenAIOfficial):
         self.client._custom_headers["X-OpenRouter-Categories"] = (
             "general-chat,personal-agent"  # type: ignore
         )
+        self.reasoning_key = "reasoning"

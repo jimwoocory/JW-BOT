@@ -36,6 +36,7 @@ from astrbot.core.star.filter.platform_adapter_type import (
     PlatformAdapterType,
 )
 from astrbot.core.subagent_orchestrator import SubAgentOrchestrator
+from astrbot.core.utils.astrbot_path import get_astrbot_system_tmp_path
 
 from ..exceptions import ProviderNotFoundError
 from .filter.command import CommandFilter
@@ -49,6 +50,9 @@ if TYPE_CHECKING:
     from astrbot.core.cron.manager import CronJobManager
     from astrbot.core.harness import HarnessEngine, HarnessTask, HarnessTaskStore
 
+WebApiHandler = Callable[..., Awaitable[Any]]
+RegisteredWebApi = tuple[str, WebApiHandler, list[str], str]
+
 
 class PlatformManagerProtocol(Protocol):
     platform_insts: list[Platform]
@@ -57,7 +61,7 @@ class PlatformManagerProtocol(Protocol):
 class Context:
     """暴露给插件的接口上下文。"""
 
-    registered_web_apis: list = []
+    registered_web_apis: list[RegisteredWebApi] = []
 
     # 向后兼容的变量
     _register_tasks: list[Awaitable] = []
@@ -271,6 +275,13 @@ class Context:
             for k, v in kwargs.items()
             if k not in ["stream", "agent_hooks", "agent_context"]
         }
+        if request.func_tool and request.func_tool.get_tool("astrbot_file_read_tool"):
+            other_kwargs.setdefault(
+                "tool_result_overflow_dir", get_astrbot_system_tmp_path()
+            )
+            other_kwargs.setdefault(
+                "read_tool", request.func_tool.get_tool("astrbot_file_read_tool")
+            )
 
         await agent_runner.reset(
             provider=prov,
@@ -535,7 +546,7 @@ class Context:
                     _parts.append(part)
                     if part in flags and i + 1 < len(module_part):
                         _parts.append(module_part[i + 1])
-                        module_part.append("main")
+                        _parts.append("main")
                         break
                 tool.handler_module_path = ".".join(_parts)
                 module_path = tool.handler_module_path
@@ -553,8 +564,8 @@ class Context:
     def register_web_api(
         self,
         route: str,
-        view_handler: Awaitable,
-        methods: list,
+        view_handler: WebApiHandler,
+        methods: list[str],
         desc: str,
     ) -> None:
         """注册 Web API。
