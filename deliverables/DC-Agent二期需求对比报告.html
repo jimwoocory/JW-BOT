@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>DC-Agent 二期需求对比报告</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 14mm 14mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #fff;
+      color: #1d2939;
+      font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+      font-size: 25px;
+      line-height: 1.55;
+    }
+
+    .cover {
+      min-height: 266mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      break-after: page;
+    }
+
+    .eyebrow {
+      color: #667085;
+      display: none;
+    }
+
+    h1 {
+      margin: 0;
+      color: #073763;
+      font-size: 58px;
+      line-height: 1.22;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin-top: 22px;
+      width: 96%;
+      color: #344054;
+      font-size: 27px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-top: 42px;
+    }
+
+    .meta-card {
+      border: 1px solid #d0dce8;
+      background: #f7fbff;
+      border-radius: 6px;
+      padding: 18px 20px;
+      min-height: 106px;
+    }
+
+    .meta-card span {
+      display: block;
+      color: #667085;
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+
+    .meta-card b {
+      color: #073763;
+      font-size: 25px;
+    }
+
+    .lead {
+      margin-top: 42px;
+      padding: 22px 24px;
+      border-left: 7px solid #1a73e8;
+      background: #f2f7ff;
+      border-radius: 6px;
+      font-size: 25px;
+    }
+
+    h2 {
+      margin: 30px 0 16px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #d8e7f8;
+      color: #073763;
+      font-size: 36px;
+      line-height: 1.25;
+      break-after: avoid;
+    }
+
+    h3 {
+      margin: 22px 0 10px;
+      color: #174a80;
+      font-size: 28px;
+      break-after: avoid;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ul {
+      margin: 8px 0 18px 34px;
+      padding: 0;
+    }
+
+    li {
+      margin: 6px 0;
+    }
+
+    .page {
+      break-after: page;
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin: 16px 0 22px;
+    }
+
+    .kpi {
+      border: 1px solid #d0dce8;
+      background: #fbfdff;
+      border-radius: 6px;
+      padding: 18px 20px;
+      min-height: 118px;
+    }
+
+    .kpi b {
+      display: block;
+      color: #0b57a4;
+      font-size: 36px;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+
+    .kpi span {
+      color: #475467;
+      font-size: 21px;
+    }
+
+    .callout {
+      border: 1px solid #bdd8f5;
+      background: #f3f8ff;
+      border-radius: 6px;
+      padding: 20px 22px;
+      margin: 16px 0 22px;
+    }
+
+    .warn {
+      border-color: #fed7aa;
+      background: #fff7ed;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 24px;
+      break-inside: avoid;
+    }
+
+    th {
+      background: #eaf3ff;
+      color: #123d68;
+      border: 1px solid #c9d8e8;
+      padding: 13px 14px;
+      text-align: left;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+
+    td {
+      border: 1px solid #dbe5ef;
+      padding: 13px 14px;
+      vertical-align: top;
+    }
+
+    .num {
+      text-align: center;
+      white-space: nowrap;
+      font-weight: 700;
+      color: #0b57a4;
+    }
+
+    .status-good {
+      color: #067647;
+      font-weight: 700;
+    }
+
+    .status-mid {
+      color: #b54708;
+      font-weight: 700;
+    }
+
+    .status-gap {
+      color: #b42318;
+      font-weight: 700;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      margin: 14px 0 22px;
+    }
+
+    .box {
+      border: 1px solid #d0dce8;
+      background: #fbfdff;
+      border-radius: 6px;
+      padding: 20px 22px;
+      break-inside: avoid;
+    }
+
+    .box h3 {
+      margin-top: 0;
+    }
+
+    .timeline {
+      margin-top: 16px;
+      border-left: 5px solid #1a73e8;
+      padding-left: 22px;
+    }
+
+    .mile {
+      position: relative;
+      margin: 0 0 22px;
+      break-inside: avoid;
+    }
+
+    .mile::before {
+      content: "";
+      position: absolute;
+      left: -34px;
+      top: 7px;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border: 5px solid #1a73e8;
+      border-radius: 50%;
+    }
+
+    .date {
+      color: #0b57a4;
+      font-weight: 700;
+    }
+
+    .mile-title {
+      margin: 2px 0;
+      font-weight: 700;
+      color: #1d2939;
+      font-size: 26px;
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <div class="eyebrow">DC-Agent 二期开发决策材料</div>
+      <h1>DC-Agent 二期需求对比报告</h1>
+      <div class="subtitle">基于 2026-05-06 飞书问卷收集结果，对比 Claude Code 已形成的二期开发方案，判断当前方案与员工真实需求的匹配度，并给出二期调整后的开发路线。</div>
+
+      <div class="meta">
+        <div class="meta-card"><span>系统名称</span><b>DC-Agent</b></div>
+        <div class="meta-card"><span>问卷样本</span><b>11 份有效答卷</b></div>
+        <div class="meta-card"><span>对比对象</span><b>Claude Code 二期方案</b></div>
+        <div class="meta-card"><span>报告日期</span><b>2026-05-07</b></div>
+      </div>
+
+      <div class="lead">
+        <strong>总判断：</strong>Claude Code 已做好的二期方案偏“底层架构升级”，重点是 Router、Harness、知识库、记忆和 Hermes 深度执行闭环；问卷反馈偏“员工可感知功能”，重点是任务提醒、项目群聊总结、资料查询和方案生成。两者方向不冲突，但二期交付顺序需要调整：先把员工高频痛点做出来，再逐步接上底层深度执行能力。
+      </div>
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>一、问卷需求统计摘要</h2>
+    <div class="kpis">
+      <div class="kpi"><b>91%</b><span>选择任务提取和提醒</span></div>
+      <div class="kpi"><b>82%</b><span>选择项目群聊总结</span></div>
+      <div class="kpi"><b>73%</b><span>希望私聊查询或生成</span></div>
+      <div class="kpi"><b>82%</b><span>希望读取飞书文档</span></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 31%;">需求项</th>
+          <th style="width: 16%;">选择人数</th>
+          <th>对二期开发的含义</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>任务提取和提醒</td>
+          <td class="num">10/11</td>
+          <td>这是员工最强需求，必须作为二期 P0。系统要能从群聊/私聊中提取事项、负责人、截止时间，并提醒。</td>
+        </tr>
+        <tr>
+          <td>项目群聊总结</td>
+          <td class="num">9/11</td>
+          <td>项目群信息分散是主要痛点。DC-Agent 需要能总结客户反馈、老板要求、执行问题和阶段结论。</td>
+        </tr>
+        <tr>
+          <td>飞书文档、飞书表格读取</td>
+          <td class="num">9/11、8/11</td>
+          <td>资料查询应优先接飞书文档和飞书表格，先做白名单资料源，不宜一开始做全量知识库。</td>
+        </tr>
+        <tr>
+          <td>客户资料、项目资料查询</td>
+          <td class="num">7/11</td>
+          <td>中台运营和财务都需要客户/项目资料。应形成客户资料、历史方案、执行记录的查询入口。</td>
+        </tr>
+        <tr>
+          <td>客户提案大纲、脚本、文案生成</td>
+          <td class="num">6-7/11</td>
+          <td>品宣和中台都需要内容/方案初稿能力，但它应建立在资料查询和项目上下文之上。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>二、员工真实需求画像</h2>
+    <div class="two-col">
+      <div class="box">
+        <h3>品宣部需求</h3>
+        <ul>
+          <li>任务提醒、项目总结、内容重点整理。</li>
+          <li>社媒发帖链接、互动量、传播量采集。</li>
+          <li>私域社群竞品负面监控和稀释话术。</li>
+          <li>小红书、抖音、视频号文案和脚本。</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>中台运营需求</h3>
+        <ul>
+          <li>客户资料、项目资料、历史方案快速查询。</li>
+          <li>项目群聊总结、老板要求和客户反馈沉淀。</li>
+          <li>根据客户需求生成方案框架、应标文件。</li>
+          <li>查找公司网盘、飞书存档、历史案例链接。</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <strong>关键提醒：</strong>员工并不希望 DC-Agent 在群聊中默认自动回应。只有 2/11 接受“任何相关问题都可回应”，更多人希望私聊、按钮、固定指令或 @ 触发。因此二期必须采用低打扰策略。
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>三、Claude Code 已形成的二期开发方案摘要</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 24%;">模块</th>
+          <th style="width: 24%;">Claude Code 方案重点</th>
+          <th>价值判断</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AstrBot 前台</td>
+          <td>员工入口、QQ/飞书接入、即时对话、结果推送。</td>
+          <td>正确。DC-Agent 不应让 Hermes 直接面对员工，AstrBot 应继续作为前台。</td>
+        </tr>
+        <tr>
+          <td>Router</td>
+          <td>识别普通对话、技能调用、正式任务、升级信号。</td>
+          <td>正确。后续任务总结、资料查询、任务提醒都需要 Router 分流。</td>
+        </tr>
+        <tr>
+          <td>Harness</td>
+          <td>任务大脑、满意度判定、任务状态机、升级调度、记忆沉淀。</td>
+          <td>方向正确，但员工问卷没有直接表达“满意度升级”，说明它是底层支撑，不应成为唯一交付感知点。</td>
+        </tr>
+        <tr>
+          <td>Hermes</td>
+          <td>后台深度执行引擎，处理复杂任务、联网搜索、多步骤工具调用。</td>
+          <td>适合作为 P1/P2 深度能力。当前员工更急需项目执行助理能力。</td>
+        </tr>
+        <tr>
+          <td>知识库与记忆</td>
+          <td>解决方案太泛，注入公司资料、短期记忆、长期记忆。</td>
+          <td>与问卷高度相关，但落地入口要从飞书文档/表格、客户项目资料开始。</td>
+        </tr>
+        <tr>
+          <td>多任务分流</td>
+          <td>AstrBot + Router + Harness 让 Hermes 服务多员工。</td>
+          <td>架构方向正确，但不应放在二期第一交付批次。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>结论：</strong>Claude Code 的二期方案更像“DC-Agent 系统底座增强方案”，不是完整的“员工需求交付方案”。它解决系统能不能长期做大做深的问题，但需要补上员工看得见、用得上的 P0 功能。
+    </div>
+
+    <h2>四、问卷需求与 Claude Code 方案匹配度</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 25%;">员工需求</th>
+          <th style="width: 17%;">问卷强度</th>
+          <th style="width: 20%;">Claude Code 覆盖情况</th>
+          <th>判断与调整</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>任务提取和提醒</td>
+          <td class="num">91%</td>
+          <td><span class="status-mid">部分覆盖</span></td>
+          <td>Harness 有任务状态机基础，但需要明确开发“任务提取、负责人、截止时间、提醒台账”。</td>
+        </tr>
+        <tr>
+          <td>项目群聊总结</td>
+          <td class="num">82%</td>
+          <td><span class="status-gap">覆盖不足</span></td>
+          <td>Claude 方案强调深度执行，没有把群聊总结作为 P0 交付项。应补为二期第一模块。</td>
+        </tr>
+        <tr>
+          <td>飞书文档/表格资料查询</td>
+          <td class="num">82% / 73%</td>
+          <td><span class="status-good">方向匹配</span></td>
+          <td>知识库方向正确，但落地应从飞书文档、飞书表格、客户资料白名单开始。</td>
+        </tr>
+        <tr>
+          <td>内容/方案生成</td>
+          <td class="num">55%-64%</td>
+          <td><span class="status-mid">间接覆盖</span></td>
+          <td>AstrBot LLM 能生成初稿，但需要按品宣和中台场景做模板：提案、脚本、口播、活动方案。</td>
+        </tr>
+        <tr>
+          <td>低打扰交互</td>
+          <td class="num">高</td>
+          <td><span class="status-mid">需要补充</span></td>
+          <td>必须明确“不默认群聊自动抢答”，仅支持私聊、按钮、固定指令或 @ 触发。</td>
+        </tr>
+        <tr>
+          <td>Hermes 深度升级</td>
+          <td class="num">隐性需求</td>
+          <td><span class="status-good">高度覆盖</span></td>
+          <td>适合用于“方案太泛、资料不够、需要深挖”场景，但不应抢在 P0 员工功能之前。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>五、最终调整建议：二期拆成 2A + 2B</h2>
+    <div class="callout">
+      <strong>建议定版：</strong>DC-Agent 二期不推翻 Claude Code 方案，而是调整交付顺序。先做 2A 员工可感知能力，再做 2B 系统深度能力。这样既回应问卷，也不浪费已有架构设计。
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 18%;">阶段</th>
+          <th style="width: 24%;">定位</th>
+          <th style="width: 34%;">开发内容</th>
+          <th>验收方式</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="num">2A</td>
+          <td>员工可感知功能</td>
+          <td>项目群聊总结、任务提取提醒、飞书资料查询、内容/方案生成模板、低打扰交互规则。</td>
+          <td>员工能在飞书真实项目群和私聊里用起来，能减少重复整理和查资料时间。</td>
+        </tr>
+        <tr>
+          <td class="num">2B</td>
+          <td>系统深度能力</td>
+          <td>Harness 满意度判定、Hermes 升级调度、知识库/记忆注入、多任务分流、失败重试。</td>
+          <td>复杂任务能从 AstrBot 初稿升级为 Hermes 深度执行，并回传结果、沉淀记忆。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>六、建议时间轴</h2>
+    <div class="timeline">
+      <div class="mile">
+        <div class="date">2026-05-07 至 2026-05-10</div>
+        <div class="mile-title">需求冻结与已有方案重排</div>
+        <p>确认 DC-Agent 二期采用 2A + 2B 路线；把 Claude Code 已做的 Harness/Hermes 架构保留为 2B，把问卷最高频需求前置到 2A。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-05-11 至 2026-05-17</div>
+        <div class="mile-title">2A-1 项目群聊总结</div>
+        <p>完成群聊重点、客户反馈、老板要求、执行问题、阶段结论总结；支持项目群 @DC-Agent 触发。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-05-18 至 2026-05-24</div>
+        <div class="mile-title">2A-2 任务提取和提醒</div>
+        <p>完成负责人、事项、截止时间、待办状态识别；优先落地飞书表格或多维表格任务台账。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-05-25 至 2026-05-31</div>
+        <div class="mile-title">2A-3 飞书资料查询</div>
+        <p>接入首批飞书文档、飞书表格、客户资料、项目资料；回答必须尽量标注资料来源或链接。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-06-01 至 2026-06-07</div>
+        <div class="mile-title">2A-4 内容与方案生成模板</div>
+        <p>完成客户提案大纲、短视频脚本、口播文案、小红书/朋友圈文案、活动方案框架模板。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-06-08 至 2026-06-15</div>
+        <div class="mile-title">灰度验收与 2B 接入评估</div>
+        <p>选择 2 至 3 个真实项目群灰度；评估哪些任务需要进入 Harness 满意度判定和 Hermes 深度执行。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-06-16 起</div>
+        <div class="mile-title">2B 系统深度能力推进</div>
+        <p>基于灰度结果推进 Harness 满意度检测、Hermes 升级调度、知识库/记忆注入和多任务分流。</p>
+      </div>
+    </div>
+
+    <h2>七、定版结论</h2>
+    <div class="callout">
+      <strong>最终建议：</strong>DC-Agent 二期应以“项目执行助手”为员工交付主题，以 Claude Code 已形成的 Harness/Hermes 架构为底层支撑。短期先交付项目群聊总结、任务提醒、资料查询和方案生成；中期再把不满意升级、深度执行、知识库记忆和多任务分流接起来。
+    </div>
+  </section>
+</body>
+</html>

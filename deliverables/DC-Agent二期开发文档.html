@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>DC-Agent 二期开发文档</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 18mm 16mm 18mm 16mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: #182230;
+      background: #ffffff;
+      font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Noto Sans CJK SC", Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.62;
+    }
+
+    .cover {
+      min-height: 245mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 4mm 0 0;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      color: #52657a;
+      letter-spacing: 0;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      margin: 0;
+      color: #0b3b75;
+      font-size: 34px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      margin-top: 14px;
+      max-width: 650px;
+      font-size: 16px;
+      color: #33465c;
+    }
+
+    .meta-grid {
+      margin-top: 34px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .meta-card {
+      border: 1px solid #d9e3ee;
+      border-radius: 6px;
+      padding: 12px;
+      background: #f7fbff;
+      min-height: 76px;
+    }
+
+    .meta-label {
+      color: #68798c;
+      font-size: 11px;
+      margin-bottom: 5px;
+    }
+
+    .meta-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #153a63;
+    }
+
+    .cover-callout {
+      border-left: 5px solid #1967d2;
+      background: #f3f8ff;
+      padding: 16px 18px;
+      margin-top: 30px;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    h2 {
+      margin: 24px 0 10px;
+      color: #0b3b75;
+      font-size: 20px;
+      line-height: 1.25;
+      border-bottom: 2px solid #d8e7f8;
+      padding-bottom: 6px;
+      break-after: avoid;
+    }
+
+    h3 {
+      margin: 18px 0 8px;
+      color: #174a80;
+      font-size: 15px;
+      break-after: avoid;
+    }
+
+    p {
+      margin: 0 0 8px;
+    }
+
+    ul {
+      margin: 6px 0 12px 18px;
+      padding: 0;
+    }
+
+    li {
+      margin: 3px 0;
+    }
+
+    .section {
+      break-inside: avoid;
+    }
+
+    .summary-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin: 12px 0 16px;
+    }
+
+    .kpi {
+      border: 1px solid #d9e3ee;
+      border-radius: 6px;
+      padding: 11px 12px;
+      background: #fbfdff;
+    }
+
+    .kpi b {
+      display: block;
+      font-size: 20px;
+      color: #0b57a4;
+      line-height: 1.1;
+      margin-bottom: 5px;
+    }
+
+    .kpi span {
+      color: #4d6075;
+      font-size: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      break-inside: avoid;
+    }
+
+    th {
+      background: #eaf3ff;
+      color: #123d68;
+      font-weight: 700;
+      text-align: left;
+      border: 1px solid #c8d8e8;
+      padding: 8px 9px;
+      vertical-align: middle;
+      line-height: 1.45;
+    }
+
+    td {
+      border: 1px solid #dbe5ef;
+      padding: 8px 9px;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .num {
+      text-align: center;
+      white-space: nowrap;
+      font-weight: 700;
+      color: #0b57a4;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #eaf3ff;
+      color: #0b57a4;
+      font-size: 11px;
+      margin-right: 4px;
+      margin-bottom: 3px;
+      white-space: nowrap;
+    }
+
+    .decision {
+      border: 1px solid #bdd8f5;
+      background: #f3f8ff;
+      padding: 12px 14px;
+      border-radius: 6px;
+      margin: 12px 0 16px;
+    }
+
+    .decision strong {
+      color: #0b3b75;
+    }
+
+    .timeline {
+      margin: 12px 0 18px;
+      border-left: 3px solid #1967d2;
+      padding-left: 14px;
+    }
+
+    .mile {
+      position: relative;
+      margin: 0 0 13px;
+      padding: 0 0 0 3px;
+      break-inside: avoid;
+    }
+
+    .mile::before {
+      content: "";
+      position: absolute;
+      left: -23px;
+      top: 4px;
+      width: 11px;
+      height: 11px;
+      border: 3px solid #1967d2;
+      background: #fff;
+      border-radius: 50%;
+    }
+
+    .date {
+      font-weight: 700;
+      color: #0b57a4;
+      font-size: 13px;
+    }
+
+    .mile-title {
+      font-weight: 700;
+      color: #182230;
+      margin: 2px 0;
+      font-size: 14px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 10px 0 16px;
+    }
+
+    .box {
+      border: 1px solid #d9e3ee;
+      background: #fbfdff;
+      border-radius: 6px;
+      padding: 12px 14px;
+      break-inside: avoid;
+    }
+
+    .box h3 {
+      margin-top: 0;
+    }
+
+    .risk {
+      background: #fff7ed;
+      border-color: #fed7aa;
+    }
+
+    .footer-note {
+      margin-top: 24px;
+      padding-top: 10px;
+      border-top: 1px solid #d8e7f8;
+      color: #68798c;
+      font-size: 11px;
+    }
+
+    .page-break {
+      break-before: page;
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div>
+      <div class="eyebrow">广西巅池文化传媒有限公司 · DC-Agent / JW-Bot</div>
+      <h1>DC-Agent 二期开发文档</h1>
+      <div class="subtitle">项目执行助手：项目群聊总结、任务提取提醒、资料查询与方案生成的二期定版方案</div>
+
+      <div class="meta-grid">
+        <div class="meta-card">
+          <div class="meta-label">版本</div>
+          <div class="meta-value">V1.0 定版</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">生成日期</div>
+          <div class="meta-value">2026-05-07</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">周期</div>
+          <div class="meta-value">6 周</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">建议上线</div>
+          <div class="meta-value">2026-06-15</div>
+        </div>
+      </div>
+
+      <div class="cover-callout">
+        <strong>二期定位：</strong>把一期飞书机器人从“能聊、能生成”升级为“能跟项目、能找资料、能沉淀结果”的项目执行助手。第一阶段不做泛化大而全能力，集中解决项目群信息分散、任务容易遗漏、客户资料难查、方案初稿耗时四类问题。
+      </div>
+    </div>
+
+    <div class="footer-note">
+      数据依据：2026-05-06 飞书问卷 11 份有效答复；主要覆盖品宣部、中台运营、执行运营、财务部及其他岗位。
+    </div>
+  </section>
+
+  <section class="page-break">
+    <h2>一、问卷结论与开发定向</h2>
+    <div class="summary-row">
+      <div class="kpi"><b>91%</b><span>选择任务提取和提醒</span></div>
+      <div class="kpi"><b>82%</b><span>选择项目群聊总结</span></div>
+      <div class="kpi"><b>73%</b><span>希望私聊查询或生成</span></div>
+      <div class="kpi"><b>82%</b><span>希望读取飞书文档</span></div>
+    </div>
+
+    <div class="decision">
+      <strong>定版判断：</strong>员工最急需的不是群里自动抢答，而是可靠的项目助理能力。二期应优先做“项目群聊总结 + 任务提取提醒 + 资料查询 + 方案生成”四件事，默认通过私聊、按钮、固定指令或群内 @ 触发，避免机器人主动干扰群聊。
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 28%;">问卷信号</th>
+          <th style="width: 16%;">占比</th>
+          <th>开发含义</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>任务提取和提醒</td>
+          <td class="num">10/11</td>
+          <td>必须作为 P0，围绕负责人、事项、截止时间、状态提醒形成闭环。</td>
+        </tr>
+        <tr>
+          <td>项目群聊总结</td>
+          <td class="num">9/11</td>
+          <td>必须作为 P0，用于沉淀客户反馈、老板要求、执行问题和阶段结论。</td>
+        </tr>
+        <tr>
+          <td>公司/客户/项目资料查询</td>
+          <td class="num">5/11</td>
+          <td>作为 P0/P1 衔接能力，优先接飞书文档、飞书表格、客户资料和项目资料。</td>
+        </tr>
+        <tr>
+          <td>飞书群 @ 问答</td>
+          <td class="num">5/11</td>
+          <td>保留为触发入口，但不做默认自动回应。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>二、二期开发目标</h2>
+    <div class="two-col">
+      <div class="box">
+        <h3>业务目标</h3>
+        <ul>
+          <li>减少项目群信息遗漏，形成可复盘的项目记录。</li>
+          <li>把任务、负责人、截止时间从聊天内容中自动提取出来。</li>
+          <li>让员工能快速查到客户、项目、历史方案和执行资料。</li>
+          <li>提升方案、文案、脚本和提案大纲初稿产出效率。</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>产品原则</h3>
+        <ul>
+          <li>默认低打扰：私聊、按钮、固定指令优先。</li>
+          <li>群内可控：需要 @ 或明确指令才回应。</li>
+          <li>准确优先：输出应尽量说明来源或依据。</li>
+          <li>先垂直再扩展：优先服务汽车客户项目。</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>三、二期功能范围</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 18%;">模块</th>
+          <th style="width: 13%;">优先级</th>
+          <th style="width: 32%;">功能说明</th>
+          <th>验收标准</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>项目群聊总结</td>
+          <td class="num">P0</td>
+          <td>读取指定项目群近期讨论，整理客户反馈、老板要求、执行问题、阶段结论。</td>
+          <td>群内 @DC-Agent 后，可生成结构化总结；总结包含重点、问题、结论、待办。</td>
+        </tr>
+        <tr>
+          <td>任务提取和提醒</td>
+          <td class="num">P0</td>
+          <td>从群聊或私聊中提取任务、负责人、截止时间和状态，生成任务台账。</td>
+          <td>至少能识别事项、负责人、截止时间；支持按负责人查看待办并定时提醒。</td>
+        </tr>
+        <tr>
+          <td>资料查询入口</td>
+          <td class="num">P0</td>
+          <td>优先接入飞书文档、飞书表格、客户资料、项目资料，支持历史方案查询。</td>
+          <td>能按客户名、项目名、关键词检索资料；回答中标注来源或资料链接。</td>
+        </tr>
+        <tr>
+          <td>内容与方案生成</td>
+          <td class="num">P1</td>
+          <td>生成客户提案大纲、短视频脚本、小红书文案、口播文案和活动方案。</td>
+          <td>员工输入客户需求后，能生成可编辑初稿，并支持继续修改。</td>
+        </tr>
+        <tr>
+          <td>项目进度看板</td>
+          <td class="num">P1</td>
+          <td>基于任务台账汇总项目状态、负责人进展、逾期风险和待确认事项。</td>
+          <td>支持查看“今天要做什么”“项目卡在哪里”“谁还有待办”。</td>
+        </tr>
+        <tr>
+          <td>热点与竞品监测</td>
+          <td class="num">P2</td>
+          <td>面向品宣部，整理平台热点、竞品动态、私域负面信息和选题建议。</td>
+          <td>作为后置专项，不阻塞二期主线上线。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page-break">
+    <h2>四、技术实现拆分</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 20%;">系统层</th>
+          <th style="width: 28%;">建设内容</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>AstrBot 前台</td>
+          <td>飞书群/私聊入口、@ 触发、固定指令、按钮菜单</td>
+          <td>继续作为员工交互入口，避免让 Hermes 直接面对员工。</td>
+        </tr>
+        <tr>
+          <td>Router</td>
+          <td>意图识别：总结、查资料、写方案、提任务、看进度</td>
+          <td>把员工自然语言分发到对应模块，减少误触发。</td>
+        </tr>
+        <tr>
+          <td>Harness</td>
+          <td>任务生命周期、状态记录、待办台账、记忆提升</td>
+          <td>用于沉淀任务过程，支撑后续复盘和项目看板。</td>
+        </tr>
+        <tr>
+          <td>资料索引</td>
+          <td>飞书文档、飞书表格、客户资料、项目资料</td>
+          <td>先做小范围白名单资料源，确保答案可追溯。</td>
+        </tr>
+        <tr>
+          <td>LLM 生成</td>
+          <td>总结、提案、脚本、文案、方案框架</td>
+          <td>所有生成类结果都要支持继续修改和补充约束。</td>
+        </tr>
+        <tr>
+          <td>Hermes 后台</td>
+          <td>复杂任务深度处理预留</td>
+          <td>二期不强制做自动升级闭环；保留人工或指令触发深挖能力。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>五、开发时间轴</h2>
+    <div class="timeline">
+      <div class="mile">
+        <div class="date">2026-05-07 至 2026-05-10</div>
+        <div class="mile-title">阶段 0：需求冻结与资料源确认</div>
+        <p>确认二期范围、P0/P1/P2 边界、飞书机器人使用规则、首批项目群和首批客户资料源。输出详细字段表、指令表、权限清单和验收样例。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-05-11 至 2026-05-17</div>
+        <div class="mile-title">阶段 1：项目群聊总结 MVP</div>
+        <p>完成群聊摘要模板、客户反馈提取、老板要求提取、阶段结论输出。支持群内 @DC-Agent 总结近期讨论。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-05-18 至 2026-05-24</div>
+        <div class="mile-title">阶段 2：任务提取与提醒台账</div>
+        <p>完成任务识别、负责人识别、截止时间识别、任务状态记录、按负责人查看待办、每日提醒规则。优先落地飞书表格或多维表格台账。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-05-25 至 2026-05-31</div>
+        <div class="mile-title">阶段 3：资料查询与来源标注</div>
+        <p>接入首批飞书文档、飞书表格、客户项目资料；支持按客户、项目、关键词查询；回答中展示资料来源、链接或引用依据。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-06-01 至 2026-06-07</div>
+        <div class="mile-title">阶段 4：内容与方案生成增强</div>
+        <p>围绕品宣和中台运营，完成客户提案大纲、短视频脚本、口播文案、小红书/朋友圈文案、活动方案框架生成与二次修改。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-06-08 至 2026-06-14</div>
+        <div class="mile-title">阶段 5：联调、灰度与验收</div>
+        <p>选择 2 至 3 个项目群灰度测试，验证总结准确率、任务提取准确率、提醒可用性、资料查询命中率和员工满意度。修复高频问题。</p>
+      </div>
+      <div class="mile">
+        <div class="date">2026-06-15</div>
+        <div class="mile-title">二期正式上线建议日</div>
+        <p>发布给品宣部、中台运营、执行运营试运行；财务对账、私域负面监控、自动深挖作为后续专项立项。</p>
+      </div>
+    </div>
+
+    <h2>六、验收标准</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 28%;">验收项</th>
+          <th style="width: 18%;">目标</th>
+          <th>通过标准</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>群聊总结可用性</td>
+          <td class="num">P0</td>
+          <td>指定项目群内 @DC-Agent 后，可输出结构化总结，人工评估可用率达到 80% 以上。</td>
+        </tr>
+        <tr>
+          <td>任务提取准确性</td>
+          <td class="num">P0</td>
+          <td>从测试群聊中提取任务、负责人、时间，核心字段准确率达到 75% 以上。</td>
+        </tr>
+        <tr>
+          <td>提醒闭环</td>
+          <td class="num">P0</td>
+          <td>可按负责人生成待办，并在设定时间发送提醒。</td>
+        </tr>
+        <tr>
+          <td>资料查询命中</td>
+          <td class="num">P0</td>
+          <td>对首批客户/项目资料，能返回来源明确的答案或链接。</td>
+        </tr>
+        <tr>
+          <td>生成内容可编辑</td>
+          <td class="num">P1</td>
+          <td>提案大纲、脚本、文案可按员工补充要求继续修改。</td>
+        </tr>
+        <tr>
+          <td>低打扰策略</td>
+          <td class="num">P0</td>
+          <td>群聊中默认不主动抢答，仅在 @、指令或已配置流程中回应。</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page-break">
+    <h2>七、暂不纳入二期主线</h2>
+    <div class="two-col">
+      <div class="box risk">
+        <h3>后置专项</h3>
+        <ul>
+          <li>财务流水、发票、报销单自动匹配对账。</li>
+          <li>私域社群本竞品负面信息监控与话术生成。</li>
+          <li>全网热点/竞品自动采集的长期监测系统。</li>
+          <li>Hermes 满意度检测后自动升级深挖完整闭环。</li>
+        </ul>
+      </div>
+      <div class="box risk">
+        <h3>不建议做法</h3>
+        <ul>
+          <li>不做群里自动抢答，避免干扰项目沟通。</li>
+          <li>不一次性接入所有文件和知识库，先做白名单资料源。</li>
+          <li>不把图片/视频生成作为二期主线，只保留现有能力。</li>
+          <li>不先做大而全的 AI 助手，先做可验收的项目执行助手。</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>八、角色分工建议</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 24%;">角色</th>
+          <th>职责</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>业务负责人</td>
+          <td>确认二期范围、优先级、验收口径和灰度项目群。</td>
+        </tr>
+        <tr>
+          <td>项目管理员</td>
+          <td>整理首批客户资料、项目资料、历史方案和飞书表格字段。</td>
+        </tr>
+        <tr>
+          <td>技术开发</td>
+          <td>完成飞书入口、Router、Harness、资料查询、任务台账、提醒逻辑。</td>
+        </tr>
+        <tr>
+          <td>灰度员工</td>
+          <td>在真实项目群中使用并反馈总结准确性、任务遗漏、资料查询问题。</td>
+        </tr>
+        <tr>
+          <td>管理层</td>
+          <td>评估是否达到项目提效目标，并决定后续专项立项。</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>九、最终定版</h2>
+    <div class="decision">
+      <strong>DC-Agent 二期开发方向正式定为：项目执行助手。</strong><br>
+      交付主线为：项目群聊总结、任务提取提醒、资料查询、方案生成。上线节奏按 6 周推进，2026-06-15 建议正式进入部门试运行。
+    </div>
+
+    <div class="footer-note">
+      文档用途：二期开发范围确认、内部沟通、排期评审和灰度验收。本文档不包含财务专项、私域监控专项和全量知识库建设的详细开发方案。
+    </div>
+  </section>
+</body>
+</html>

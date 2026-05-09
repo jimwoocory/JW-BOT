@@ -1,0 +1,588 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DC-Agent 公司 AI办公任务系统一期整体功能报告</title>
+  <style>
+    :root {
+      --ink: #172033;
+      --muted: #647084;
+      --line: #d9e0ea;
+      --paper: #f7f9fc;
+      --brand: #0e6bff;
+      --brand-dark: #113a7a;
+      --green: #1d8f61;
+      --amber: #b97800;
+      --blue-soft: #e9f2ff;
+      --green-soft: #e9f8f0;
+      --amber-soft: #fff4dc;
+      --white: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.62;
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    header {
+      background: linear-gradient(135deg, #f7fbff 0%, #eaf2ff 54%, #eef8f2 100%);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .hero {
+      min-height: 430px;
+      display: grid;
+      grid-template-columns: 1.35fr 0.65fr;
+      gap: 48px;
+      align-items: center;
+      padding: 56px 0 48px;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 30px;
+      color: var(--brand-dark);
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .brand-row img {
+      width: 46px;
+      height: 46px;
+      object-fit: contain;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border: 1px solid #b8cbed;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--brand-dark);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      max-width: 780px;
+      margin: 0 0 18px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 740px;
+      margin: 0;
+      color: #425169;
+      font-size: 20px;
+    }
+
+    .hero-panel {
+      border: 1px solid rgba(17, 58, 122, 0.18);
+      background: rgba(255, 255, 255, 0.72);
+      border-radius: 8px;
+      padding: 24px;
+      box-shadow: 0 18px 48px rgba(39, 66, 120, 0.12);
+    }
+
+    .hero-panel h2 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .metric {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 13px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .metric:first-of-type {
+      border-top: 0;
+    }
+
+    .metric strong {
+      color: var(--brand);
+      font-size: 24px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    main {
+      padding: 34px 0 64px;
+    }
+
+    section {
+      margin-top: 26px;
+      padding: 30px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      box-shadow: 0 10px 28px rgba(31, 45, 70, 0.05);
+    }
+
+    h2 {
+      margin: 0 0 18px;
+      font-size: 25px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 18px;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      background: #fbfcff;
+    }
+
+    .card h3 {
+      margin-top: 0;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tag.done {
+      color: var(--green);
+      background: var(--green-soft);
+    }
+
+    .tag.progress {
+      color: var(--amber);
+      background: var(--amber-soft);
+    }
+
+    .tag.core {
+      color: var(--brand-dark);
+      background: var(--blue-soft);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      font-size: 15px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      color: #31405a;
+      background: #f0f4fa;
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .flow div {
+      min-height: 96px;
+      padding: 14px;
+      border: 1px solid #c8d7ee;
+      border-radius: 8px;
+      background: #f8fbff;
+      font-weight: 700;
+    }
+
+    .flow span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .note {
+      padding: 16px 18px;
+      border-left: 4px solid var(--brand);
+      background: #f5f9ff;
+      color: #34455f;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .footer {
+      margin: 28px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      header,
+      section {
+        box-shadow: none;
+      }
+
+      .page {
+        width: 100%;
+        padding: 0 18px;
+      }
+
+      section {
+        break-inside: avoid;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .hero,
+      .grid.cols-2,
+      .grid.cols-3,
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        gap: 24px;
+        padding-top: 34px;
+      }
+
+      section {
+        padding: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="page hero">
+      <div>
+        <div class="brand-row">
+          <img src="../docs/grey_test_video/dianchi_logo.png" alt="公司 logo">
+          <span>DIANCHI · DC-Agent 公司 AI办公任务系统</span>
+        </div>
+        <div class="eyebrow">一期系统整体功能报告 · 2026-05-06</div>
+        <h1>企业内部 AI 办公助手平台已形成一期可用闭环</h1>
+        <p class="lead">
+          DC-Agent 公司 AI办公任务系统当前以 AstrBot 作为员工入口，以 Harness 管理任务生命周期，以 Hermes Agent 承接深度执行，面向 QQ、飞书和 Web 聊天场景提供智能办公、任务流转、创意生成、知识沉淀和后台管理能力。
+        </p>
+      </div>
+
+      <aside class="hero-panel">
+        <h2>老板速览</h2>
+        <div class="metric">
+          <strong>3</strong>
+          <span>员工入口：QQ、飞书、WebChat</span>
+        </div>
+        <div class="metric">
+          <strong>4</strong>
+          <span>核心任务类型：营销、内容、项目、审批</span>
+        </div>
+        <div class="metric">
+          <strong>10+</strong>
+          <span>可路由技能：图片、视频、PPT、文档、GitHub、检索等</span>
+        </div>
+        <div class="metric">
+          <strong>1</strong>
+          <span>统一 WebUI：配置、会话、知识库、插件、日志和统计</span>
+        </div>
+      </aside>
+    </div>
+  </header>
+
+  <main class="page">
+    <section>
+      <h2>一、系统定位</h2>
+      <p>
+        DC-Agent 公司 AI办公任务系统是公司内部员工使用的 AI 办公系统。它不是单纯聊天机器人，而是把员工需求接入、意图识别、任务管理、AI 生成、资料沉淀和深度执行组合在一起的工作平台。
+      </p>
+      <div class="note">
+        一期的核心价值是：员工不用理解后台工具，只需在 QQ、飞书或 Web 界面里表达需求，系统自动判断是普通问答、工作任务还是专业技能调用，并把结果回到原沟通渠道。
+      </div>
+    </section>
+
+    <section>
+      <h2>二、已具备的核心能力</h2>
+      <div class="grid cols-3">
+        <article class="card">
+          <span class="tag done">已上线</span>
+          <h3>多平台员工入口</h3>
+          <p>支持 QQ 官方机器人、飞书机器人和 WebChat。员工可以在熟悉的沟通工具中直接提交工作需求。</p>
+        </article>
+        <article class="card">
+          <span class="tag done">已上线</span>
+          <h3>智能意图路由</h3>
+          <p>通过规则、关键词和 LLM 二次判断，将消息分为任务、技能或普通对话，减少误触发和人工分派。</p>
+        </article>
+        <article class="card">
+          <span class="tag done">已上线</span>
+          <h3>Harness 任务系统</h3>
+          <p>支持任务创建、状态追踪、完成、失败、取消、审查、审批通过和驳回，形成企业任务生命周期管理。</p>
+        </article>
+        <article class="card">
+          <span class="tag done">已上线</span>
+          <h3>人格与角色绑定</h3>
+          <p>系统支持推广运营、项目跟进、技术运维等不同 Persona，让不同岗位获得更贴近职责的回答风格和处理方式。</p>
+        </article>
+        <article class="card">
+          <span class="tag done">已上线</span>
+          <h3>即梦 AI 创意生成</h3>
+          <p>可调用即梦 CLI 完成文生图、文生视频、图片转视频、任务查询和余额提醒，适合营销素材快速试稿。</p>
+        </article>
+        <article class="card">
+          <span class="tag progress">完善中</span>
+          <h3>Hermes 深度执行</h3>
+          <p>已具备桥接和满意度信号检测基础，目标是在员工明确不满意或要求深度研究时升级给 Hermes 多步骤执行。</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>三、系统架构与工作流</h2>
+      <p>
+        系统采用“前台 + 后台”的双引擎架构。AstrBot 负责企业聊天入口、身份会话、路由和即时反馈；Hermes Agent 负责联网搜索、工具调用、多步骤分析等复杂后台执行；Harness 位于中间，负责记录任务、跟踪状态和沉淀记忆。
+      </p>
+      <div class="flow" aria-label="系统工作流">
+        <div>员工消息<span>QQ / 飞书 / WebChat</span></div>
+        <div>意图路由<span>任务 / 技能 / 对话</span></div>
+        <div>Harness<span>任务状态与上下文</span></div>
+        <div>AI 执行<span>AstrBot LLM / Hermes</span></div>
+        <div>结果回传<span>回到原平台</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>四、一期功能清单</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>模块</th>
+            <th>当前能力</th>
+            <th>业务价值</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>员工入口</td>
+            <td>QQ、飞书、Web 聊天接入，多用户会话隔离。</td>
+            <td>降低培训成本，员工在原工作流里使用 AI。</td>
+            <td><span class="tag done">已上线</span></td>
+          </tr>
+          <tr>
+            <td>Router 意图路由</td>
+            <td>支持精确命令、关键词匹配和 LLM fallback；可配置营销、内容、项目、审批等任务意图。</td>
+            <td>让系统自动判断需求类型，减少人工转派。</td>
+            <td><span class="tag done">已上线</span></td>
+          </tr>
+          <tr>
+            <td>Harness 任务管理</td>
+            <td>提供 /task new、/task intake、/task ls、/task show、/task done、/task review、/task approve、/task reject 等命令。</td>
+            <td>把一次聊天变成可追踪任务，便于复盘和管理。</td>
+            <td><span class="tag done">已上线</span></td>
+          </tr>
+          <tr>
+            <td>任务记忆沉淀</td>
+            <td>任务完成后可将摘要、结果预览和历史任务写入 Harness Memory。</td>
+            <td>持续积累公司内部任务经验，提升后续回复质量。</td>
+            <td><span class="tag done">已上线</span></td>
+          </tr>
+          <tr>
+            <td>知识库能力</td>
+            <td>系统具备知识库数据库、Dashboard 上传入口、文件接收与本地智库入库插件基础。</td>
+            <td>把品牌规范、历史文案、项目资料接入 AI，减少泛泛而谈。</td>
+            <td><span class="tag progress">配置完善中</span></td>
+          </tr>
+          <tr>
+            <td>创意工具</td>
+            <td>即梦图片、视频、图片转视频、生成任务查询、余额提醒。</td>
+            <td>支持营销海报、短视频概念稿和创意素材快速生成。</td>
+            <td><span class="tag done">已上线</span></td>
+          </tr>
+          <tr>
+            <td>Web 管理后台</td>
+            <td>提供聊天、会话、配置、人格、模型供应商、插件、知识库、日志、统计、定时任务等管理页面。</td>
+            <td>让系统可配置、可观测、可维护。</td>
+            <td><span class="tag done">已上线</span></td>
+          </tr>
+          <tr>
+            <td>Hermes 桥接</td>
+            <td>具备会话映射、Webhook 通信和结果回传设计；旧桥接版本已归档，新链路以满意度升级为目标。</td>
+            <td>为复杂研究、联网搜索、深度分析保留后台执行通道。</td>
+            <td><span class="tag progress">联调完善中</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>五、可支撑的业务场景</h2>
+      <div class="grid cols-2">
+        <article class="card">
+          <h3>营销策划与推广方案</h3>
+          <p>员工可提交推广目标、渠道、预算和周期，系统按营销计划任务处理，生成方案并沉淀经验。</p>
+        </article>
+        <article class="card">
+          <h3>内容交付与素材产出</h3>
+          <p>支持文案、交付物、海报概念、视频脚本和即梦素材生成，适合日常内容团队试稿。</p>
+        </article>
+        <article class="card">
+          <h3>项目跟进与审批协作</h3>
+          <p>支持项目跟进、审批请求、审查状态和驳回重做，让跨部门事项在聊天中留痕。</p>
+        </article>
+        <article class="card">
+          <h3>内部知识与经验复用</h3>
+          <p>品牌规范、历史文案、数据报表、客户资料可进入知识库，后续任务可结合上下文和历史记忆生成。</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>六、管理后台能力</h2>
+      <p>
+        Dashboard 是系统运营人员的统一控制台，覆盖模型供应商、平台接入、插件扩展、知识库、人格、会话、日志、追踪和统计等功能。一期后台已经具备支撑日常调试、配置变更和问题排查的基础能力。
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>后台页面</th>
+            <th>用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>会话与聊天</td>
+            <td>查看和测试不同会话、项目聊天、消息记录与上下文压力。</td>
+          </tr>
+          <tr>
+            <td>人格与模型</td>
+            <td>配置不同岗位 Persona，管理模型供应商和模型选择。</td>
+          </tr>
+          <tr>
+            <td>平台与插件</td>
+            <td>管理 QQ、飞书等平台接入，以及已安装插件、市场插件和技能。</td>
+          </tr>
+          <tr>
+            <td>知识库与长期记忆</td>
+            <td>管理文档、知识库详情、长期记忆和 Alkaid 相关能力。</td>
+          </tr>
+          <tr>
+            <td>日志、追踪、统计</td>
+            <td>支持运维观察、问题定位、运行状态检查和系统趋势分析。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>七、当前风险与二期建议</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>事项</th>
+            <th>影响</th>
+            <th>建议</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>知识库内容仍需补齐</td>
+            <td>缺少公司资料时，AI 容易生成通用方案。</td>
+            <td>优先导入品牌规范、历史爆款、客户资料、项目复盘和数据报表。</td>
+          </tr>
+          <tr>
+            <td>满意度升级链路需要完整联调</td>
+            <td>Hermes 的深度执行价值尚未完全进入员工工作流。</td>
+            <td>以“员工不满意 → Hermes 深度处理 → 回传结果”为二期核心验收线。</td>
+          </tr>
+          <tr>
+            <td>多任务并发和队列能力待规划</td>
+            <td>未来多员工同时使用时，后台深度任务可能排队或互相影响。</td>
+            <td>建设 AstrBot 多会话分流、Harness 队列和 Hermes 执行池。</td>
+          </tr>
+          <tr>
+            <td>运营指标需要产品化</td>
+            <td>老板层面需要看到使用量、节省时间、满意度和任务完成率。</td>
+            <td>在 Dashboard 增加一期运营看板，持续展示业务价值。</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>八、结论</h2>
+      <p>
+        DC-Agent 公司 AI办公任务系统一期已经具备企业内部 AI 办公平台的基本骨架：能接入员工、识别需求、创建任务、调用工具、生成结果、沉淀记忆，并通过 WebUI 运维管理。系统下一步最值得投入的是把公司知识库补齐，并打通满意度驱动的 Hermes 深度执行闭环。
+      </p>
+      <p>
+        从管理视角看，一期已经可以进入小范围试用和真实业务验证；二期应围绕“更懂公司资料、更能完成复杂任务、更可衡量业务价值”推进。
+      </p>
+    </section>
+
+    <p class="footer">
+      本报告基于 /Users/dianchi/DC-Agent 本地仓库于 2026-05-06 的代码与文档梳理生成；其中 JW-Bot 仅作为 git 仓库名称使用。
+    </p>
+  </main>
+</body>
+</html>
