@@ -101,22 +101,22 @@ Deliver:
 
 New code should live under:
 
-- [`astrbot/core/harness/`](/Users/dianchi/JW-Bot/astrbot/core/harness)
+- [`astrbot/core/harness/`](/Users/dianchi/DC-Agent/astrbot/core/harness)
 
 Recommended initial modules:
 
-- [`astrbot/core/harness/contracts.py`](/Users/dianchi/JW-Bot/astrbot/core/harness/contracts.py)
+- [`astrbot/core/harness/contracts.py`](/Users/dianchi/DC-Agent/astrbot/core/harness/contracts.py)
   stable dataclasses and status definitions
 
-- [`astrbot/core/harness/task_store.py`](/Users/dianchi/JW-Bot/astrbot/core/harness/task_store.py)
+- [`astrbot/core/harness/task_store.py`](/Users/dianchi/DC-Agent/astrbot/core/harness/task_store.py)
   sidecar persistence for tasks and task events
 
-- [`astrbot/core/harness/engine.py`](/Users/dianchi/JW-Bot/astrbot/core/harness/engine.py)
+- [`astrbot/core/harness/engine.py`](/Users/dianchi/DC-Agent/astrbot/core/harness/engine.py)
   thin task lifecycle helpers used by future plugins or built-in command paths
 
 Tests should start under:
 
-- [`tests/unit/test_harness_task_store.py`](/Users/dianchi/JW-Bot/tests/unit/test_harness_task_store.py)
+- [`tests/unit/test_harness_task_store.py`](/Users/dianchi/DC-Agent/tests/unit/test_harness_task_store.py)
 
 ## Stable Contract
 

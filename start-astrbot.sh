@@ -3,4 +3,4 @@
 echo "[start-astrbot] Waiting 30s for Surge TUN to initialize..."
 sleep 30
 echo "[start-astrbot] Starting AstrBot..."
-exec /Users/dianchi/JW-Bot/.venv/bin/astrbot run
+exec /Users/dianchi/DC-Agent/.venv/bin/astrbot run

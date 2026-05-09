@@ -13,7 +13,7 @@
 ## 📦 已交付的组件
 
 ### 1. Hermes Skill
-**路径**: `/Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base/`
+**路径**: `/Users/dianchi/DC-Agent/hermes-agent-temp/skills/productivity/astrbot-knowledge-base/`
 
 **包含**:
 - `SKILL.md` - 完整的技能文档和使用指南
@@ -91,7 +91,7 @@ asyncio.run(check())
 ### 步骤 2: 测试 Skill 查询
 
 ```bash
-cd /Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base
+cd /Users/dianchi/DC-Agent/hermes-agent-temp/skills/productivity/astrbot-knowledge-base
 
 # 查询所有知识库
 python3 scripts/query_kb.py --query "五菱" --top-k 5
@@ -117,7 +117,7 @@ python3 scripts/query_kb.py --query "品牌" --kb-name "品牌规范" --json-out
 
 ```bash
 # 启动 Hermes
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 ./hermes-start.sh
 
 # 在 Hermes 中询问关于知识库内容的问题

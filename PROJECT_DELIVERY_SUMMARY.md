@@ -10,7 +10,7 @@
 
 ### 1️⃣ Hermes Skill - 知识库查询
 
-**位置**: `/Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base/`
+**位置**: `/Users/dianchi/DC-Agent/hermes-agent-temp/skills/productivity/astrbot-knowledge-base/`
 
 **包含文件**:
 - ✅ `SKILL.md` (1,247 行) - 完整技能文档
@@ -155,13 +155,13 @@ exclude_dirs:
 
 2. **观看索引进度**
    ```bash
-   tail -f /Users/dianchi/JW-Bot/nas_sync/watcher.log
+   tail -f /Users/dianchi/DC-Agent/nas_sync/watcher.log
    ```
 
 ### 文件索引完成后
 1. **验证 Skill 工作**
    ```bash
-   cd /Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base
+   cd /Users/dianchi/DC-Agent/hermes-agent-temp/skills/productivity/astrbot-knowledge-base
    python3 scripts/query_kb.py --query "五菱" --top-k 5
    ```
 

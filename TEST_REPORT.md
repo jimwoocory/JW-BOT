@@ -2,7 +2,7 @@
 
 ## 执行命令
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 uv run pytest tests/unit/ -x -q
 ```
 

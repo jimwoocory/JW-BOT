@@ -2,22 +2,22 @@
 
 ## 📦 安装位置
 
-- **项目目录**: `/Users/dianchi/JW-Bot/hermes-agent-temp`
-- **配置目录**: `/Users/dianchi/JW-Bot/hermes-config`
-- **虚拟环境**: `/Users/dianchi/JW-Bot/hermes-agent-temp/venv`
+- **项目目录**: `/Users/dianchi/DC-Agent/hermes-agent-temp`
+- **配置目录**: `/Users/dianchi/DC-Agent/hermes-config`
+- **虚拟环境**: `/Users/dianchi/DC-Agent/hermes-agent-temp/venv`
 - **版本**: v0.8.0 (Python 3.11.15)
 
 ## 🚀 快速启动
 
 ### 方式 1：使用启动脚本（推荐）
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 ./hermes-start.sh
 ```
 
 ### 方式 2：直接运行
 ```bash
-cd /Users/dianchi/JW-Bot/hermes-agent-temp
+cd /Users/dianchi/DC-Agent/hermes-agent-temp
 ./venv/bin/python -m hermes_cli.main
 ```
 
@@ -33,7 +33,7 @@ cd /Users/dianchi/JW-Bot/hermes-agent-temp
 或手动编辑配置文件：
 ```bash
 # 编辑配置
-vim /Users/dianchi/JW-Bot/hermes-config/.env
+vim /Users/dianchi/DC-Agent/hermes-config/.env
 ```
 
 ### 2. 支持的模型提供商

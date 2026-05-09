@@ -3,7 +3,7 @@
 ═══════════════════════════════════════════════════════════════════════════════
 
 📍 HERMES SKILL 位置
-└─ /Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base/
+└─ /Users/dianchi/DC-Agent/hermes-agent-temp/skills/productivity/astrbot-knowledge-base/
 
 ───────────────────────────────────────────────────────────────────────────────
 🚀 快速验证 (文件索引完成后)
@@ -25,7 +25,7 @@ asyncio.run(check())
 "
 
 2️⃣  测试 Skill 查询
-   $ cd /Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base
+   $ cd /Users/dianchi/DC-Agent/hermes-agent-temp/skills/productivity/astrbot-knowledge-base
    $ python3 scripts/query_kb.py --query "五菱" --top-k 5
 
 3️⃣  启动 Hermes 并在其中提问

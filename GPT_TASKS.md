@@ -24,7 +24,7 @@ _目的：把机械、可独立完成的任务交给 GPT-5.4，不阻塞 Claude 
 **要做：**
 1. 再做一次最终验证（防止 grep 漏）：
    ```bash
-   grep -rn "jw_astrbot_shell\|from .*jw_astrbot_shell\|import jw_astrbot_shell" /Users/dianchi/JW-Bot \
+   grep -rn "jw_astrbot_shell\|from .*jw_astrbot_shell\|import jw_astrbot_shell" /Users/dianchi/DC-Agent \
      --include="*.py" --include="*.toml" --include="*.cfg" --include="*.json" --include="*.yaml" \
      2>/dev/null | grep -v __pycache__ | grep -v "/src/jw_astrbot_shell/" | grep -v "/.claude/"
    ```
@@ -37,7 +37,7 @@ _目的：把机械、可独立完成的任务交给 GPT-5.4，不阻塞 Claude 
 
 **验收：** `git status` 看到 `R` 重命名条目；启动不报错。
 
-结果：复跑全仓 grep 未发现外部引用；已 `git mv` 到 `astrbot/src/_archived/jw_astrbot_shell`；并用 `UV_CACHE_DIR=/tmp/uv-cache PYTHONPATH=/Users/dianchi/JW-Bot uv run python -c "import astrbot"` 冒烟通过。
+结果：复跑全仓 grep 未发现外部引用；已 `git mv` 到 `astrbot/src/_archived/jw_astrbot_shell`；并用 `UV_CACHE_DIR=/tmp/uv-cache PYTHONPATH=/Users/dianchi/DC-Agent uv run python -c "import astrbot"` 冒烟通过。
 
 ---
 

@@ -17,10 +17,10 @@ The target outcome is:
 
 The current AstrBot stack already has:
 
-- conversation persistence in [`conversation_mgr.py`](/Users/dianchi/JW-Bot/astrbot/core/conversation_mgr.py)
-- a pluggable context pipeline in [`manager.py`](/Users/dianchi/JW-Bot/astrbot/core/agent/context/manager.py)
-- a `ContextCompressor` protocol in [`compressor.py`](/Users/dianchi/JW-Bot/astrbot/core/agent/context/compressor.py)
-- a replaceable token counter in [`token_counter.py`](/Users/dianchi/JW-Bot/astrbot/core/agent/context/token_counter.py)
+- conversation persistence in [`conversation_mgr.py`](/Users/dianchi/DC-Agent/astrbot/core/conversation_mgr.py)
+- a pluggable context pipeline in [`manager.py`](/Users/dianchi/DC-Agent/astrbot/core/agent/context/manager.py)
+- a `ContextCompressor` protocol in [`compressor.py`](/Users/dianchi/DC-Agent/astrbot/core/agent/context/compressor.py)
+- a replaceable token counter in [`token_counter.py`](/Users/dianchi/DC-Agent/astrbot/core/agent/context/token_counter.py)
 
 That means `lossless-claw-enhanced` fits naturally as a context-layer upgrade.
 
@@ -77,7 +77,7 @@ The following parts are OpenClaw-specific and should be rewritten:
 
 The AstrBot-native version should land in a new context module family under:
 
-- [`astrbot/core/agent/context/`](/Users/dianchi/JW-Bot/astrbot/core/agent/context)
+- [`astrbot/core/agent/context/`](/Users/dianchi/DC-Agent/astrbot/core/agent/context)
 - optional storage helpers under a new subtree such as `astrbot/core/context_store/`
 
 Recommended new components:
@@ -104,7 +104,7 @@ Recommended new components:
 
 ### 1. Token Counter
 
-First upgrade the default token counter path used by [`manager.py`](/Users/dianchi/JW-Bot/astrbot/core/agent/context/manager.py).
+First upgrade the default token counter path used by [`manager.py`](/Users/dianchi/DC-Agent/astrbot/core/agent/context/manager.py).
 
 Plan:
 
@@ -126,7 +126,7 @@ Plan:
 
 ### 3. Conversation Storage
 
-AstrBot already persists conversation history in [`conversation_mgr.py`](/Users/dianchi/JW-Bot/astrbot/core/conversation_mgr.py), but the current model is too flat for DAG compaction.
+AstrBot already persists conversation history in [`conversation_mgr.py`](/Users/dianchi/DC-Agent/astrbot/core/conversation_mgr.py), but the current model is too flat for DAG compaction.
 
 Plan:
 

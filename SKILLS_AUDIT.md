@@ -34,7 +34,7 @@
 | 16 | `mcp` | 2 nested | 0 files | 无 | ✅ 正常 | `mcporter`、`native-mcp` |
 | 17 | `media` | 4 nested | 1 file | 无 | ✅ 正常 | `fetch_transcript.py` 无死依赖 |
 | 18 | `mlops` | 22 nested | 0 files | 无 | ✅ 正常 | 内容最多，未见旧架构依赖 |
-| 19 | `nas` | 1 | 0 files | ⚠️ 绝对路径 | ⚠️ 待确认 | SKILL.md 多处硬编码 `/Users/dianchi/nas_kb` 和 `/Users/dianchi/JW-Bot/nas_sync/` |
+| 19 | `nas` | 1 | 0 files | ⚠️ 绝对路径 | ⚠️ 待确认 | SKILL.md 多处硬编码 `/Users/dianchi/nas_kb` 和 `/Users/dianchi/DC-Agent/nas_sync/` |
 | 20 | `note-taking` | 1 nested | 0 files | 无 | ✅ 正常 | 仅 `obsidian` |
 | 21 | `productivity` | 6 nested | 12 files | 无 | ✅ 正常 | `google-workspace`、`ocr-and-documents`、`powerpoint` 等脚本均无旧依赖 |
 | 22 | `red-teaming` | 1 nested | 4 files | ⚠️ 见下 | ⚠️ 待确认 | 只读分析，不修改 |
@@ -74,7 +74,7 @@
 
 ## 需要用户确认的项目
 
-1. **`nas`**：SKILL.md 明确绑定 `/Users/dianchi/nas_kb` 与 `/Users/dianchi/JW-Bot/nas_sync/`，跨机器不可直接复用，需改为环境变量或配置注入
+1. **`nas`**：SKILL.md 明确绑定 `/Users/dianchi/nas_kb` 与 `/Users/dianchi/DC-Agent/nas_sync/`，跨机器不可直接复用，需改为环境变量或配置注入
 2. **`diagramming`、`domain`、`feeds`、`gifs`、`inference-sh`**：仅有 `DESCRIPTION.md`，无 SKILL.md，像占位目录，建议标注为 placeholder
 3. **`red-teaming/godmode`**：架构兼容但内容敏感，需人工复核
 

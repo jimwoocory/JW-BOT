@@ -24,7 +24,7 @@ _目的：偏分析/验证类任务，以读为主，不改核心代码。与 GP
 
 **要做：**
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 python -m pytest tests/unit/ -x -q 2>&1 | tail -50
 ```
 
@@ -132,7 +132,7 @@ async def test_promote_with_missing_outputs():
 
 **背景：** 当前 `astrbot.log` 是最新一次启动的完整日志（71 行，已读）。里面有些值得关注的东西，用户忙没时间细看。
 
-**要做：** 读 `/Users/dianchi/JW-Bot/astrbot.log`，分析：
+**要做：** 读 `/Users/dianchi/DC-Agent/astrbot.log`，分析：
 1. 插件加载情况（哪些加载成功/失败）
 2. Provider 加载情况（哪些 enabled/disabled，有几个 disabled）
 3. 平台适配器（qq_official 有几个，名字是什么）

@@ -38,7 +38,7 @@ https://console.anthropic.com/settings/keys
 
 #### 方式 1：直接编辑 .env 文件
 ```bash
-vim /Users/dianchi/JW-Bot/hermes-config/.env
+vim /Users/dianchi/DC-Agent/hermes-config/.env
 ```
 
 找到这一行：
@@ -53,7 +53,7 @@ ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
 #### 方式 2：使用命令行
 ```bash
-cd /Users/dianchi/JW-Bot/hermes-config
+cd /Users/dianchi/DC-Agent/hermes-config
 echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
 ```
 
@@ -61,7 +61,7 @@ echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
 
 运行以下命令测试配置：
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 ./hermes-start.sh doctor
 ```
 
@@ -88,7 +88,7 @@ model:
 
 配置完成后，启动 Hermes：
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 ./hermes-start.sh
 ```
 

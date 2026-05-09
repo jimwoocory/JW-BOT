@@ -10,7 +10,7 @@
 - **认证方式**: OAuth 2.0 Device Flow
 - **账户**: jimwoo.cory@gmail.com
 - **默认模型**: `openai-codex/gpt-5.4`
-- **认证文件**: `/Users/dianchi/JW-Bot/hermes-config/auth.json`
+- **认证文件**: `/Users/dianchi/DC-Agent/hermes-config/auth.json`
 - **状态**: ✅ 已登录并可用
 
 ## 🎯 可用的 GPT 模型
@@ -31,7 +31,7 @@
 
 ### 1. 启动 Hermes
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 ./hermes-start.sh
 ```
 
@@ -76,7 +76,7 @@ JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 ### 修改默认模型
 编辑配置文件：
 ```bash
-vim /Users/dianchi/JW-Bot/hermes-config/config.yaml
+vim /Users/dianchi/DC-Agent/hermes-config/config.yaml
 ```
 
 修改：
@@ -109,7 +109,7 @@ Hermes 会自动使用 refresh token 刷新访问令牌，无需手动操作。
 
 ### 查看认证详情
 ```bash
-cat /Users/dianchi/JW-Bot/hermes-config/auth.json
+cat /Users/dianchi/DC-Agent/hermes-config/auth.json
 ```
 
 ## ⚠️ 注意事项

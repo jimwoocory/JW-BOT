@@ -5,7 +5,7 @@
 # 设置 PATH（包含 Homebrew 和 uv）
 export PATH="/opt/homebrew/bin:/Users/dianchi/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 
 # 启动 AstrBot 主服务
 echo "Starting AstrBot..."
@@ -17,7 +17,7 @@ sleep 5
 
 # 启动 AstrBot Vue Dashboard - 端口 4311
 echo "Starting AstrBot Dashboard..."
-cd /Users/dianchi/JW-Bot/dashboard
+cd /Users/dianchi/DC-Agent/dashboard
 /opt/homebrew/bin/pnpm dev --port 4311 &
 DASHBOARD_PID=$!
 

@@ -75,14 +75,14 @@ exclude_dirs:
 ### Step 1: 修复配置
 ```bash
 # 编辑配置文件
-nano /Users/dianchi/JW-Bot/nas_sync/config.yaml
+nano /Users/dianchi/DC-Agent/nas_sync/config.yaml
 
 # 移除那三个 exclude_dirs 条目
 ```
 
 ### Step 2: 运行一次完整扫描
 ```bash
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 python nas_sync/watcher.py --once
 ```
 
@@ -101,7 +101,7 @@ curl -s http://localhost:6185/api/kb/list \
 ### Step 4: 测试 Hermes Skill
 一旦有文件被索引，测试查询：
 ```bash
-cd /Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base
+cd /Users/dianchi/DC-Agent/hermes-agent-temp/skills/productivity/astrbot-knowledge-base
 python3 scripts/query_kb.py --query "五菱" --top-k 5
 ```
 
@@ -120,7 +120,7 @@ python3 scripts/query_kb.py --query "五菱" --top-k 5
 
 ## 🔧 Hermes Skill 准备就绪
 
-✅ **已创建**：`/Users/dianchi/JW-Bot/hermes-agent-temp/skills/productivity/astrbot-knowledge-base/`
+✅ **已创建**：`/Users/dianchi/DC-Agent/hermes-agent-temp/skills/productivity/astrbot-knowledge-base/`
 
 **文件**：
 - `SKILL.md` - Hermes 技能定义（含完整使用说明）
@@ -154,14 +154,14 @@ python3 scripts/query_kb.py --query "五菱" --top-k 5
 
 ```bash
 # 1. 修复配置
-sed -i '' '/影视部交接文件夹/d; /五菱总备份/d; /五菱老素材/d' /Users/dianchi/JW-Bot/nas_sync/config.yaml
+sed -i '' '/影视部交接文件夹/d; /五菱总备份/d; /五菱老素材/d' /Users/dianchi/DC-Agent/nas_sync/config.yaml
 
 # 2. 验证修复
-grep "exclude_dirs" -A 10 /Users/dianchi/JW-Bot/nas_sync/config.yaml
+grep "exclude_dirs" -A 10 /Users/dianchi/DC-Agent/nas_sync/config.yaml
 
 # 3. 运行摄入
-cd /Users/dianchi/JW-Bot && python nas_sync/watcher.py --once &
+cd /Users/dianchi/DC-Agent && python nas_sync/watcher.py --once &
 
 # 4. 监控日志
-tail -f /Users/dianchi/JW-Bot/nas_sync/watcher.log
+tail -f /Users/dianchi/DC-Agent/nas_sync/watcher.log
 ```

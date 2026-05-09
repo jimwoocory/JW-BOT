@@ -1,7 +1,7 @@
 # Startup Report — 2026-04-18
 
 ## 执行命令
-读取 `/Users/dianchi/JW-Bot/astrbot.log`（71 行）
+读取 `/Users/dianchi/DC-Agent/astrbot.log`（71 行）
 
 ---
 
