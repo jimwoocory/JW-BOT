@@ -54,13 +54,13 @@ ls /Users/dianchi/nas_kb 2>/dev/null && echo "已挂载" || echo "未挂载"
 
 ```bash
 # 挂载
-/Users/dianchi/JW-Bot/nas_sync/mount.sh mount
+/Users/dianchi/DC-Agent/nas_sync/mount.sh mount
 
 # 卸载
-/Users/dianchi/JW-Bot/nas_sync/mount.sh unmount
+/Users/dianchi/DC-Agent/nas_sync/mount.sh unmount
 
 # 查看状态
-/Users/dianchi/JW-Bot/nas_sync/mount.sh status
+/Users/dianchi/DC-Agent/nas_sync/mount.sh status
 ```
 
 ### 浏览文件
@@ -94,7 +94,7 @@ pdftotext /Users/dianchi/nas_kb/archive/document.pdf -
 cp ~/Downloads/新文档.pdf /Users/dianchi/nas_kb/inbox/
 
 # 或者立即触发一次摄入（而不等待 watchdog）
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 python nas_sync/watcher.py --once
 ```
 
@@ -102,17 +102,17 @@ python nas_sync/watcher.py --once
 
 ```bash
 # 查看已摄入文件记录
-cat /Users/dianchi/JW-Bot/nas_sync/state.json | python3 -m json.tool
+cat /Users/dianchi/DC-Agent/nas_sync/state.json | python3 -m json.tool
 
 # 查看摄入日志
-tail -50 /Users/dianchi/JW-Bot/nas_sync/watcher.log
+tail -50 /Users/dianchi/DC-Agent/nas_sync/watcher.log
 ```
 
 ### 启动/重启 watcher 后台进程
 
 ```bash
 # 前台运行（调试用）
-cd /Users/dianchi/JW-Bot
+cd /Users/dianchi/DC-Agent
 python nas_sync/watcher.py
 
 # 后台运行

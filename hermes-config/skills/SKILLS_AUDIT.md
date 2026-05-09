@@ -34,7 +34,7 @@
 | 16 | `mcp` | 2 nested | 0 files | 无 | ✅ 正常 | `mcporter`、`native-mcp`。 |
 | 17 | `media` | 4 nested | 1 file | 无 | ✅ 正常 | `youtube-content/scripts/fetch_transcript.py` 无死依赖。 |
 | 18 | `mlops` | 22 nested | 0 files | 无 | ✅ 正常 | 内容最多的目录，未见旧架构依赖。 |
-| 19 | `nas` | 1 | 0 files | ⚠️ 绝对路径 | ⚠️ 待确认 | `SKILL.md` 多处硬编码 `/Users/dianchi/nas_kb` 与 `/Users/dianchi/JW-Bot/nas_sync/...`，强依赖当前机器路径。 |
+| 19 | `nas` | 1 | 0 files | ⚠️ 绝对路径 | ⚠️ 待确认 | `SKILL.md` 多处硬编码 `/Users/dianchi/nas_kb` 与 `/Users/dianchi/DC-Agent/nas_sync/...`，强依赖当前机器路径。 |
 | 20 | `note-taking` | 1 nested | 0 files | 无 | ✅ 正常 | 当前仅 `obsidian`。 |
 | 21 | `productivity` | 6 nested | 12 files | 无 | ✅ 正常 | `google-workspace`、`ocr-and-documents`、`powerpoint` 等脚本均未见旧依赖。 |
 | 22 | `red-teaming` | 1 nested | 4 files | ⚠️ 见下 | ⚠️ 待确认 | 仅做只读分析，不修改内容。 |
@@ -51,7 +51,7 @@
 
 ### 需要修复的 Skills（可运行但有隐患）
 
-- `nas`：`SKILL.md` 明确绑定 `/Users/dianchi/nas_kb` 与 `/Users/dianchi/JW-Bot/nas_sync/`，属于环境耦合设计，跨机器不可直接复用。
+- `nas`：`SKILL.md` 明确绑定 `/Users/dianchi/nas_kb` 与 `/Users/dianchi/DC-Agent/nas_sync/`，属于环境耦合设计，跨机器不可直接复用。
 - `diagramming`：只有 `DESCRIPTION.md`，尚未形成真正可触发的 skill 目录结构。
 - `domain`：描述文档存在，但缺少 `SKILL.md` 和脚本落地，当前更像待实现规格。
 - `feeds`：只有 `DESCRIPTION.md`。
