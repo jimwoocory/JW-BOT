@@ -1,4 +1,4 @@
-/* Auto-generated MDI subset – 275 icons */
+/* Auto-generated MDI subset – 260 icons */
 /* Do not edit manually. Run: pnpm run subset-icons */
 
 @font-face {
@@ -32,20 +32,8 @@
   content: "\F0FFB";
 }
 
-.mdi-account-group::before {
-  content: "\F0849";
-}
-
-.mdi-account-group-outline::before {
-  content: "\F0B58";
-}
-
 .mdi-account-heart::before {
   content: "\F0899";
-}
-
-.mdi-account-multiple::before {
-  content: "\F000E";
 }
 
 .mdi-account-voice::before {
@@ -62,10 +50,6 @@
 
 .mdi-alert-circle-outline::before {
   content: "\F05D6";
-}
-
-.mdi-alert-octagon::before {
-  content: "\F0029";
 }
 
 .mdi-alert-outline::before {
@@ -116,10 +100,6 @@
   content: "\F006F";
 }
 
-.mdi-bell-ring::before {
-  content: "\F009E";
-}
-
 .mdi-book-open-page-variant::before {
   content: "\F05DA";
 }
@@ -130,6 +110,10 @@
 
 .mdi-brain::before {
   content: "\F09D1";
+}
+
+.mdi-broadcast::before {
+  content: "\F1720";
 }
 
 .mdi-broom::before {
@@ -156,16 +140,8 @@
   content: "\F08A7";
 }
 
-.mdi-calendar-multiple::before {
-  content: "\F00F1";
-}
-
 .mdi-calendar-plus::before {
   content: "\F00F3";
-}
-
-.mdi-chart-pie::before {
-  content: "\F012B";
 }
 
 .mdi-chat::before {
@@ -196,20 +172,12 @@
   content: "\F05E1";
 }
 
-.mdi-check-decagram::before {
-  content: "\F0791";
-}
-
 .mdi-checkbox-blank-outline::before {
   content: "\F0131";
 }
 
 .mdi-checkbox-marked::before {
   content: "\F0132";
-}
-
-.mdi-checkbox-multiple-marked-outline::before {
-  content: "\F0139";
 }
 
 .mdi-chevron-double-left::before {
@@ -248,18 +216,6 @@
   content: "\F09DF";
 }
 
-.mdi-clipboard-check::before {
-  content: "\F014E";
-}
-
-.mdi-clipboard-list::before {
-  content: "\F10D4";
-}
-
-.mdi-clipboard-text::before {
-  content: "\F014D";
-}
-
 .mdi-clock-outline::before {
   content: "\F0150";
 }
@@ -278,6 +234,10 @@
 
 .mdi-cloud-upload::before {
   content: "\F0167";
+}
+
+.mdi-code-braces::before {
+  content: "\F0169";
 }
 
 .mdi-code-json::before {
@@ -336,10 +296,6 @@
   content: "\F0818";
 }
 
-.mdi-counter::before {
-  content: "\F0199";
-}
-
 .mdi-creation::before {
   content: "\F0674";
 }
@@ -372,6 +328,10 @@
   content: "\F1634";
 }
 
+.mdi-database-search-outline::before {
+  content: "\F1636";
+}
+
 .mdi-delete::before {
   content: "\F01B4";
 }
@@ -398,6 +358,10 @@
 
 .mdi-download::before {
   content: "\F01DA";
+}
+
+.mdi-download-outline::before {
+  content: "\F0B8F";
 }
 
 .mdi-emoticon::before {
@@ -440,8 +404,12 @@
   content: "\F0215";
 }
 
-.mdi-file-code::before {
-  content: "\F022E";
+.mdi-file-code-outline::before {
+  content: "\F102B";
+}
+
+.mdi-file-delimited-outline::before {
+  content: "\F0EA5";
 }
 
 .mdi-file-document::before {
@@ -464,6 +432,10 @@
   content: "\F021C";
 }
 
+.mdi-file-music-outline::before {
+  content: "\F0E2A";
+}
+
 .mdi-file-outline::before {
   content: "\F0224";
 }
@@ -484,8 +456,8 @@
   content: "\F0A4D";
 }
 
-.mdi-file-upload-outline::before {
-  content: "\F0A4E";
+.mdi-file-video-outline::before {
+  content: "\F0E2C";
 }
 
 .mdi-file-word-box::before {
@@ -494,18 +466,6 @@
 
 .mdi-filter-remove::before {
   content: "\F0234";
-}
-
-.mdi-filter-variant::before {
-  content: "\F0236";
-}
-
-.mdi-flash::before {
-  content: "\F0241";
-}
-
-.mdi-flash-off::before {
-  content: "\F0243";
 }
 
 .mdi-folder::before {
@@ -544,14 +504,6 @@
   content: "\F0279";
 }
 
-.mdi-forum::before {
-  content: "\F028C";
-}
-
-.mdi-forum-outline::before {
-  content: "\F0822";
-}
-
 .mdi-frequently-asked-questions::before {
   content: "\F0EB4";
 }
@@ -566,10 +518,6 @@
 
 .mdi-function-variant::before {
   content: "\F0871";
-}
-
-.mdi-gauge::before {
-  content: "\F029A";
 }
 
 .mdi-github::before {
@@ -592,10 +540,6 @@
   content: "\F02D1";
 }
 
-.mdi-heart-pulse::before {
-  content: "\F05F6";
-}
-
 .mdi-help-circle::before {
   content: "\F02D7";
 }
@@ -608,8 +552,16 @@
   content: "\F02DC";
 }
 
+.mdi-hook::before {
+  content: "\F06E2";
+}
+
 .mdi-identifier::before {
   content: "\F0EFE";
+}
+
+.mdi-image-outline::before {
+  content: "\F0976";
 }
 
 .mdi-import::before {
@@ -636,28 +588,44 @@
   content: "\F0309";
 }
 
-.mdi-keyboard-outline::before {
-  content: "\F097B";
-}
-
 .mdi-label::before {
   content: "\F0315";
 }
 
-.mdi-lan-connect::before {
-  content: "\F0318";
+.mdi-language-css3::before {
+  content: "\F031C";
+}
+
+.mdi-language-html5::before {
+  content: "\F031D";
+}
+
+.mdi-language-java::before {
+  content: "\F0B37";
+}
+
+.mdi-language-javascript::before {
+  content: "\F031E";
 }
 
 .mdi-language-markdown::before {
   content: "\F0354";
 }
 
-.mdi-layers-outline::before {
-  content: "\F09FE";
+.mdi-language-markdown-outline::before {
+  content: "\F0F5B";
 }
 
-.mdi-lightbulb-on::before {
-  content: "\F06E8";
+.mdi-language-python::before {
+  content: "\F0320";
+}
+
+.mdi-language-typescript::before {
+  content: "\F06E6";
+}
+
+.mdi-layers-outline::before {
+  content: "\F09FE";
 }
 
 .mdi-lightbulb-outline::before {
@@ -716,20 +684,12 @@
   content: "\F035F";
 }
 
-.mdi-message-off-outline::before {
-  content: "\F164E";
-}
-
 .mdi-message-outline::before {
   content: "\F0365";
 }
 
 .mdi-message-text::before {
   content: "\F0369";
-}
-
-.mdi-message-text-outline::before {
-  content: "\F036A";
 }
 
 .mdi-microphone::before {
@@ -788,6 +748,10 @@
   content: "\F03D6";
 }
 
+.mdi-package-variant-closed::before {
+  content: "\F03D7";
+}
+
 .mdi-page-first::before {
   content: "\F0600";
 }
@@ -802,10 +766,6 @@
 
 .mdi-pause::before {
   content: "\F03E4";
-}
-
-.mdi-pause-circle-outline::before {
-  content: "\F03E6";
 }
 
 .mdi-pencil::before {
@@ -838,10 +798,6 @@
 
 .mdi-play::before {
   content: "\F040A";
-}
-
-.mdi-play-circle-outline::before {
-  content: "\F040D";
 }
 
 .mdi-plus::before {
@@ -910,10 +866,6 @@
 
 .mdi-robot-outline::before {
   content: "\F167A";
-}
-
-.mdi-send::before {
-  content: "\F048A";
 }
 
 .mdi-server::before {
@@ -1000,12 +952,8 @@
   content: "\F060D";
 }
 
-.mdi-swap-horizontal::before {
-  content: "\F04E1";
-}
-
-.mdi-table-large::before {
-  content: "\F04F1";
+.mdi-sync::before {
+  content: "\F04E6";
 }
 
 .mdi-text::before {
@@ -1078,14 +1026,6 @@
 
 .mdi-view-dashboard::before {
   content: "\F056E";
-}
-
-.mdi-view-grid::before {
-  content: "\F0570";
-}
-
-.mdi-view-list::before {
-  content: "\F0572";
 }
 
 .mdi-volume-high::before {

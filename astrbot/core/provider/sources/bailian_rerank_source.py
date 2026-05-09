@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 import aiohttp
 
@@ -12,19 +13,23 @@ from ..register import register_provider_adapter
 class BailianRerankError(Exception):
     """百炼重排序服务异常基类"""
 
+    pass
+
 
 class BailianAPIError(BailianRerankError):
     """百炼API返回错误"""
+
+    pass
 
 
 class BailianNetworkError(BailianRerankError):
     """百炼网络请求错误"""
 
+    pass
+
 
 @register_provider_adapter(
-    "bailian_rerank",
-    "阿里云百炼文本排序适配器",
-    provider_type=ProviderType.RERANK,
+    "bailian_rerank", "阿里云百炼文本排序适配器", provider_type=ProviderType.RERANK
 )
 class BailianRerankProvider(RerankProvider):
     """阿里云百炼文本重排序适配器."""
@@ -38,8 +43,7 @@ class BailianRerankProvider(RerankProvider):
 
         # API配置
         self.api_key = provider_config.get("rerank_api_key") or os.getenv(
-            "DASHSCOPE_API_KEY",
-            "",
+            "DASHSCOPE_API_KEY", ""
         )
         if not self.api_key:
             raise ValueError("阿里云百炼 API Key 不能为空。")
@@ -61,8 +65,7 @@ class BailianRerankProvider(RerankProvider):
         }
 
         self.client = aiohttp.ClientSession(
-            headers=headers,
-            timeout=aiohttp.ClientTimeout(total=self.timeout),
+            headers=headers, timeout=aiohttp.ClientTimeout(total=self.timeout)
         )
 
         # 设置模型名称
@@ -71,10 +74,7 @@ class BailianRerankProvider(RerankProvider):
         logger.info(f"AstrBot 百炼 Rerank 初始化完成。模型: {self.model}")
 
     def _build_payload(
-        self,
-        query: str,
-        documents: list[str],
-        top_n: int | None,
+        self, query: str, documents: list[str], top_n: int | None
     ) -> dict:
         """构建请求载荷
 
@@ -85,13 +85,10 @@ class BailianRerankProvider(RerankProvider):
 
         Returns:
             请求载荷字典
-
         """
         normalized_model = self.model.strip().lower()
         normalized_top_n = top_n if top_n is not None and top_n > 0 else None
 
-        # qwen3-rerank follows a model-specific payload:
-        # query/documents/top_n/instruct should be at the top level.
         if normalized_model == self.QWEN3_RERANK_MODEL:
             payload = {
                 "model": self.model,
@@ -105,12 +102,11 @@ class BailianRerankProvider(RerankProvider):
             if self.return_documents:
                 logger.warning(
                     "qwen3-rerank does not support return_documents; "
-                    "this option will be ignored.",
+                    "this option will be ignored."
                 )
             return payload
 
-        base = {"model": self.model, "input": {"query": query, "documents": documents}}
-
+        payload_input = {"query": query, "documents": documents}
         params = {
             k: v
             for k, v in [
@@ -120,6 +116,7 @@ class BailianRerankProvider(RerankProvider):
             if v is not None
         }
 
+        base: dict[str, Any] = {"model": self.model, "input": payload_input}
         if params:
             base["parameters"] = params
 
@@ -137,16 +134,24 @@ class BailianRerankProvider(RerankProvider):
         Raises:
             BailianAPIError: API返回错误
             KeyError: 结果缺少必要字段
-
         """
-        # 检查响应状态
-        if data.get("code", "200") != "200":
-            raise BailianAPIError(
-                f"百炼 API 错误: {data.get('code')} – {data.get('message', '')}",
-            )
+        is_compatible_api = "compatible-api" in self.base_url
 
-        # 兼容旧版 API (output.results) 和新版 compatible API (results)
-        results = (data.get("output") or {}).get("results") or data.get("results") or []
+        if is_compatible_api:
+            code = data.get("code")
+            if code:
+                raise BailianAPIError(
+                    f"百炼 API 错误: {code} – {data.get('message', '')}"
+                )
+            results = data.get("results", [])
+        else:
+            code = data.get("code", "200")
+            if code != "200":
+                raise BailianAPIError(
+                    f"百炼 API 错误: {code} – {data.get('message', '')}"
+                )
+            results = data.get("output", {}).get("results", [])
+
         if not results:
             logger.warning(f"百炼 Rerank 返回空结果: {data}")
             return []
@@ -163,8 +168,7 @@ class BailianRerankProvider(RerankProvider):
                     relevance_score = 0.0
 
                 rerank_result = RerankResult(
-                    index=index,
-                    relevance_score=relevance_score,
+                    index=index, relevance_score=relevance_score
                 )
                 rerank_results.append(rerank_result)
             except Exception as e:
@@ -178,7 +182,6 @@ class BailianRerankProvider(RerankProvider):
 
         Args:
             data: API响应数据
-
         """
         tokens = data.get("usage", {}).get("total_tokens", 0)
         if tokens > 0:
@@ -190,7 +193,8 @@ class BailianRerankProvider(RerankProvider):
         documents: list[str],
         top_n: int | None = None,
     ) -> list[RerankResult]:
-        """对文档进行重排序
+        """
+        对文档进行重排序
 
         Args:
             query: 查询文本
@@ -199,7 +203,6 @@ class BailianRerankProvider(RerankProvider):
 
         Returns:
             重排序结果列表
-
         """
         if not self.client:
             logger.error("百炼 Rerank 客户端会话已关闭，返回空结果")
@@ -216,7 +219,7 @@ class BailianRerankProvider(RerankProvider):
         # 检查限制
         if len(documents) > 500:
             logger.warning(
-                f"文档数量({len(documents)})超过限制(500)，将截断前500个文档",
+                f"文档数量({len(documents)})超过限制(500)，将截断前500个文档"
             )
             documents = documents[:500]
 
@@ -225,7 +228,7 @@ class BailianRerankProvider(RerankProvider):
             payload = self._build_payload(query, documents, top_n)
 
             logger.debug(
-                f"百炼 Rerank 请求: query='{query[:50]}...', 文档数量={len(documents)}",
+                f"百炼 Rerank 请求: query='{query[:50]}...', 文档数量={len(documents)}"
             )
 
             # 发送请求

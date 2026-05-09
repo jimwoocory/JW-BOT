@@ -9,12 +9,10 @@ import platform
 import zoneinfo
 from collections.abc import Coroutine
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from astrbot.core import logger
-from astrbot.core.agent.context.compressor import TruncateByTurnsCompressor
 from astrbot.core.agent.handoff import HandoffTool
-from astrbot.core.agent.context.lossless_assembler import LosslessAssembler
-from astrbot.core.agent.context.lossless_compressor import LosslessSummaryCompressor
 from astrbot.core.agent.mcp_client import MCPTool
 from astrbot.core.agent.message import TextPart
 from astrbot.core.agent.tool import ToolSet
@@ -23,35 +21,15 @@ from astrbot.core.astr_agent_hooks import MAIN_AGENT_HOOKS
 from astrbot.core.astr_agent_run_util import AgentRunner
 from astrbot.core.astr_agent_tool_exec import FunctionToolExecutor
 from astrbot.core.astr_main_agent_resources import (
-    ANNOTATE_EXECUTION_TOOL,
-    BROWSER_BATCH_EXEC_TOOL,
-    BROWSER_EXEC_TOOL,
     CHATUI_SPECIAL_DEFAULT_PERSONA_PROMPT,
-    CREATE_SKILL_CANDIDATE_TOOL,
-    CREATE_SKILL_PAYLOAD_TOOL,
-    EVALUATE_SKILL_CANDIDATE_TOOL,
-    EXECUTE_SHELL_TOOL,
-    FILE_DOWNLOAD_TOOL,
-    FILE_UPLOAD_TOOL,
-    GET_EXECUTION_HISTORY_TOOL,
-    GET_SKILL_PAYLOAD_TOOL,
-    LIST_SKILL_CANDIDATES_TOOL,
-    LIST_SKILL_RELEASES_TOOL,
     LIVE_MODE_SYSTEM_PROMPT,
     LLM_SAFETY_MODE_SYSTEM_PROMPT,
-    LOCAL_EXECUTE_SHELL_TOOL,
-    LOCAL_PYTHON_TOOL,
-    PROMOTE_SKILL_CANDIDATE_TOOL,
-    PYTHON_TOOL,
-    ROLLBACK_SKILL_RELEASE_TOOL,
-    RUN_BROWSER_SKILL_TOOL,
     SANDBOX_MODE_PROMPT,
-    SYNC_SKILL_RELEASE_TOOL,
     TOOL_CALL_PROMPT,
     TOOL_CALL_PROMPT_SKILLS_LIKE_MODE,
 )
 from astrbot.core.conversation_mgr import Conversation
-from astrbot.core.message.components import File, Image, Record, Reply
+from astrbot.core.message.components import File, Image, Record, Reply, Video
 from astrbot.core.persona_error_reply import (
     extract_persona_custom_error_message_from_persona,
     set_persona_custom_error_message_on_event,
@@ -59,9 +37,44 @@ from astrbot.core.persona_error_reply import (
 from astrbot.core.platform.astr_message_event import AstrMessageEvent
 from astrbot.core.provider import Provider
 from astrbot.core.provider.entities import ProviderRequest
-from astrbot.core.skills.skill_manager import SkillManager, build_skills_prompt
+from astrbot.core.provider.register import llm_tools
+from astrbot.core.skills.skill_manager import (
+    SkillInfo,
+    SkillManager,
+    build_skills_prompt,
+)
 from astrbot.core.star.context import Context
+from astrbot.core.star.star import star_registry
 from astrbot.core.star.star_handler import star_map
+from astrbot.core.tools.computer_tools import (
+    AnnotateExecutionTool,
+    BrowserBatchExecTool,
+    BrowserExecTool,
+    CreateSkillCandidateTool,
+    CreateSkillPayloadTool,
+    CuaKeyboardTypeTool,
+    CuaMouseClickTool,
+    CuaScreenshotTool,
+    EvaluateSkillCandidateTool,
+    ExecuteShellTool,
+    FileDownloadTool,
+    FileEditTool,
+    FileReadTool,
+    FileUploadTool,
+    FileWriteTool,
+    GetExecutionHistoryTool,
+    GetSkillPayloadTool,
+    GrepTool,
+    ListSkillCandidatesTool,
+    ListSkillReleasesTool,
+    LocalPythonTool,
+    PromoteSkillCandidateTool,
+    PythonTool,
+    RollbackSkillReleaseTool,
+    RunBrowserSkillTool,
+    SyncSkillReleaseTool,
+    normalize_umo_for_workspace,
+)
 from astrbot.core.tools.cron_tools import FutureTaskTool
 from astrbot.core.tools.knowledge_base_tools import (
     KnowledgeBaseQueryTool,
@@ -72,9 +85,15 @@ from astrbot.core.tools.web_search_tools import (
     BaiduWebSearchTool,
     BochaWebSearchTool,
     BraveWebSearchTool,
+    FirecrawlExtractWebPageTool,
+    FirecrawlWebSearchTool,
     TavilyExtractWebPageTool,
     TavilyWebSearchTool,
     normalize_legacy_web_search_config,
+)
+from astrbot.core.utils.astrbot_path import (
+    get_astrbot_system_tmp_path,
+    get_astrbot_workspaces_path,
 )
 from astrbot.core.utils.file_extract import extract_file_moonshotai
 from astrbot.core.utils.llm_metadata import LLM_METADATAS
@@ -99,8 +118,7 @@ from astrbot.core.utils.string_utils import normalize_and_dedupe_strings
 @dataclass(slots=True)
 class MainAgentBuildConfig:
     """The main agent build configuration.
-    Most of the configs can be found in the cmd_config.json
-    """
+    Most of the configs can be found in the cmd_config.json"""
 
     tool_call_timeout: int
     """The timeout (in seconds) for a tool call.
@@ -139,6 +157,8 @@ class MainAgentBuildConfig:
     This enforce max turns before compression"""
     dequeue_context_length: int = 1
     """The number of oldest turns to remove when context length limit is reached."""
+    fallback_max_context_tokens: int = 128000
+    """Fallback max context tokens. When max_context_tokens is 0 and the model is not in LLM_METADATAS, use this value."""
     llm_safety_mode: bool = True
     """This will inject healthy and safe system prompt into the main agent,
     to prevent LLM output harmful information"""
@@ -153,14 +173,6 @@ class MainAgentBuildConfig:
     timezone: str | None = None
     max_quoted_fallback_images: int = 20
     """Maximum number of images injected from quoted-message fallback extraction."""
-    lossless_context_enabled: bool = False
-    """Enable lossless context compaction (Phase 1C/1D).
-    When True, the LosslessSummaryCompressor is used and summary_leaf nodes are
-    persisted to the sidecar store.  The environment variable
-    ASTRBOT_EXPERIMENTAL_LOSSLESS_CONTEXT=1 takes precedence over this field."""
-    lossless_compact_message_threshold: int = 200
-    """Compact lossless context when the raw non-system message count reaches
-    this threshold, even if the model context window is still very large."""
 
 
 @dataclass(slots=True)
@@ -172,8 +184,7 @@ class MainAgentBuildResult:
 
 
 def _select_provider(
-    event: AstrMessageEvent,
-    plugin_context: Context,
+    event: AstrMessageEvent, plugin_context: Context
 ) -> Provider | None:
     """Select chat provider for the event."""
     sel_provider = event.get_extra("selected_provider")
@@ -183,8 +194,7 @@ def _select_provider(
             logger.error("未找到指定的提供商: %s。", sel_provider)
         if not isinstance(provider, Provider):
             logger.error(
-                "选择的提供商类型无效(%s)，跳过 LLM 请求处理。",
-                type(provider),
+                "选择的提供商类型无效(%s)，跳过 LLM 请求处理。", type(provider)
             )
             return None
         return provider
@@ -195,44 +205,8 @@ def _select_provider(
         return None
 
 
-def _lossless_enabled(config: MainAgentBuildConfig) -> bool:
-    """Return True if lossless context is enabled via env var or config flag."""
-    env_val = os.environ.get("ASTRBOT_EXPERIMENTAL_LOSSLESS_CONTEXT", "").lower()
-    if env_val in ("1", "true", "yes", "on"):
-        return True
-    return config.lossless_context_enabled
-
-
-def _build_custom_compressor(
-    config: MainAgentBuildConfig,
-    plugin_context: Context,
-    provider: Provider | None = None,
-    conversation_id: str | None = None,
-) -> LosslessSummaryCompressor | None:
-    if not _lossless_enabled(config):
-        return None
-
-    store = plugin_context.conversation_manager.lossless_store
-    assembler = LosslessAssembler(store)
-    compress_provider = _get_compress_provider(config, plugin_context) or provider
-
-    return LosslessSummaryCompressor(
-        provider=compress_provider,
-        keep_recent=config.llm_compress_keep_recent,
-        instruction_text=config.llm_compress_instruction or None,
-        message_threshold=config.lossless_compact_message_threshold,
-        fallback_compressor=TruncateByTurnsCompressor(
-            truncate_turns=config.dequeue_context_length,
-        ),
-        store=store,
-        conversation_id=conversation_id,
-        assembler=assembler,
-    )
-
-
 async def _get_session_conv(
-    event: AstrMessageEvent,
-    plugin_context: Context,
+    event: AstrMessageEvent, plugin_context: Context
 ) -> Conversation:
     conv_mgr = plugin_context.conversation_manager
     umo = event.unified_msg_origin
@@ -276,8 +250,8 @@ async def _apply_kb(
             req.func_tool = ToolSet()
         req.func_tool.add_tool(
             plugin_context.get_llm_tool_manager().get_builtin_tool(
-                KnowledgeBaseQueryTool,
-            ),
+                KnowledgeBaseQueryTool
+            )
         )
 
 
@@ -312,7 +286,7 @@ async def _apply_file_extract(
                     config.file_extract_msh_api_key,
                 )
                 for file_path in file_paths
-            ],
+            ]
         )
     else:
         logger.error("Unsupported file extract provider: %s", config.file_extract_prov)
@@ -340,11 +314,54 @@ def _apply_prompt_prefix(req: ProviderRequest, cfg: dict) -> None:
         req.prompt = f"{prefix}{req.prompt}"
 
 
-def _apply_local_env_tools(req: ProviderRequest) -> None:
+def _get_workspace_path_for_umo(umo: str) -> Path:
+    normalized_umo = normalize_umo_for_workspace(umo)
+    return Path(get_astrbot_workspaces_path()) / normalized_umo
+
+
+def _apply_workspace_extra_prompt(
+    event: AstrMessageEvent,
+    req: ProviderRequest,
+) -> None:
+    extra_prompt_path = _get_workspace_path_for_umo(event.unified_msg_origin) / (
+        "EXTRA_PROMPT.md"
+    )
+    if not extra_prompt_path.is_file():
+        return
+
+    try:
+        extra_prompt = extra_prompt_path.read_text(encoding="utf-8").strip()
+    except Exception as exc:  # noqa: BLE001
+        logger.warning(
+            "Failed to read workspace extra prompt for umo=%s from %s: %s",
+            event.unified_msg_origin,
+            extra_prompt_path,
+            exc,
+        )
+        return
+
+    if not extra_prompt:
+        return
+
+    req.system_prompt = (
+        f"{req.system_prompt or ''}\n"
+        "[Workspace Extra Prompt]\n"
+        "The following instructions are loaded from the current workspace "
+        "`EXTRA_PROMPT.md` file.\n"
+        f"{extra_prompt}\n"
+    )
+
+
+def _apply_local_env_tools(req: ProviderRequest, plugin_context: Context) -> None:
     if req.func_tool is None:
         req.func_tool = ToolSet()
-    req.func_tool.add_tool(LOCAL_EXECUTE_SHELL_TOOL)
-    req.func_tool.add_tool(LOCAL_PYTHON_TOOL)
+    tool_mgr = plugin_context.get_llm_tool_manager()
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(ExecuteShellTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(LocalPythonTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(FileReadTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(FileWriteTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(FileEditTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(GrepTool))
     req.system_prompt = f"{req.system_prompt or ''}\n{_build_local_mode_prompt()}\n"
 
 
@@ -361,6 +378,38 @@ def _build_local_mode_prompt() -> str:
         f"Current operating system: {system_name}. "
         f"{shell_hint}"
     )
+
+
+def _filter_skills_for_current_config(
+    skills: list[SkillInfo],
+    cfg: dict,
+) -> list[SkillInfo]:
+    plugin_set = cfg.get("plugin_set", ["*"])
+    allowed_plugins = (
+        None
+        if not isinstance(plugin_set, list) or "*" in plugin_set
+        else {str(name) for name in plugin_set}
+    )
+    plugin_by_root_dir = {
+        metadata.root_dir_name: metadata
+        for metadata in star_registry
+        if metadata.root_dir_name
+    }
+    filtered: list[SkillInfo] = []
+    for skill in skills:
+        if skill.source_type != "plugin":
+            filtered.append(skill)
+            continue
+
+        plugin = plugin_by_root_dir.get(skill.plugin_name)
+        if not plugin or not plugin.activated:
+            continue
+        if plugin.reserved or allowed_plugins is None:
+            filtered.append(skill)
+            continue
+        if plugin.name is not None and plugin.name in allowed_plugins:
+            filtered.append(skill)
+    return filtered
 
 
 async def _ensure_persona_and_skills(
@@ -386,9 +435,11 @@ async def _ensure_persona_and_skills(
     )
 
     set_persona_custom_error_message_on_event(
-        event,
-        extract_persona_custom_error_message_from_persona(persona),
+        event, extract_persona_custom_error_message_from_persona(persona)
     )
+
+    if req.system_prompt is None:
+        req.system_prompt = ""
 
     if persona:
         # Inject persona system prompt
@@ -403,6 +454,7 @@ async def _ensure_persona_and_skills(
     runtime = cfg.get("computer_use_runtime", "local")
     skill_manager = SkillManager()
     skills = skill_manager.list_skills(active_only=True, runtime=runtime)
+    skills = _filter_skills_for_current_config(skills, cfg)
 
     if skills:
         if persona and persona.get("skills") is not None:
@@ -468,7 +520,7 @@ async def _ensure_persona_and_skills(
                             tool.name
                             for tool in tmgr.func_list
                             if not isinstance(tool, HandoffTool)
-                        ],
+                        ]
                     )
                     continue
                 if not isinstance(tools, list):
@@ -560,7 +612,7 @@ async def _ensure_img_caption(
         )
         if caption:
             req.extra_user_content_parts.append(
-                TextPart(text=f"<image_caption>{caption}</image_caption>"),
+                TextPart(text=f"<image_caption>{caption}</image_caption>")
             )
             req.image_urls = []
     except Exception as exc:  # noqa: BLE001
@@ -572,20 +624,47 @@ async def _ensure_img_caption(
 
 def _append_quoted_image_attachment(req: ProviderRequest, image_path: str) -> None:
     req.extra_user_content_parts.append(
-        TextPart(text=f"[Image Attachment in quoted message: path {image_path}]"),
+        TextPart(text=f"[Image Attachment in quoted message: path {image_path}]")
     )
 
 
 def _append_audio_attachment(req: ProviderRequest, audio_path: str) -> None:
     req.extra_user_content_parts.append(
-        TextPart(text=f"[Audio Attachment: path {audio_path}]"),
+        TextPart(text=f"[Audio Attachment: path {audio_path}]")
     )
 
 
 def _append_quoted_audio_attachment(req: ProviderRequest, audio_path: str) -> None:
     req.extra_user_content_parts.append(
-        TextPart(text=f"[Audio Attachment in quoted message: path {audio_path}]"),
+        TextPart(text=f"[Audio Attachment in quoted message: path {audio_path}]")
     )
+
+
+async def _append_video_attachment(
+    req: ProviderRequest,
+    video: Video,
+    *,
+    quoted: bool = False,
+) -> None:
+    try:
+        video_path = await video.convert_to_file_path()
+    except Exception as exc:  # noqa: BLE001
+        if quoted:
+            logger.error("Error processing quoted video attachment: %s", exc)
+        else:
+            logger.error("Error processing video attachment: %s", exc)
+        return
+
+    video_name = os.path.basename(video_path)
+    if quoted:
+        text = (
+            f"[Video Attachment in quoted message: "
+            f"name {video_name}, path {video_path}]"
+        )
+    else:
+        text = f"[Video Attachment: name {video_name}, path {video_path}]"
+
+    req.extra_user_content_parts.append(TextPart(text=text))
 
 
 def _get_quoted_message_parser_settings(
@@ -710,7 +789,7 @@ async def _process_quote_message(
                 )
                 if llm_resp.completion_text:
                     content_parts.append(
-                        f"[Image Caption in quoted message]: {llm_resp.completion_text}",
+                        f"[Image Caption in quoted message]: {llm_resp.completion_text}"
                     )
             else:
                 logger.warning("No provider found for image captioning in quote.")
@@ -783,7 +862,7 @@ async def _decorate_llm_request(
     config: MainAgentBuildConfig,
 ) -> None:
     cfg = config.provider_settings or plugin_context.get_config(
-        umo=event.unified_msg_origin,
+        umo=event.unified_msg_origin
     ).get("provider_settings", {})
 
     _apply_prompt_prefix(req, cfg)
@@ -816,139 +895,7 @@ async def _decorate_llm_request(
     if tz is None:
         tz = plugin_context.get_config().get("timezone")
     _append_system_reminders(event, req, cfg, tz)
-
-
-def _modalities_fix(provider: Provider, req: ProviderRequest) -> None:
-    if req.image_urls:
-        provider_cfg = provider.provider_config.get("modalities", ["image"])
-        if "image" not in provider_cfg:
-            logger.debug(
-                "Provider %s does not support image, using placeholder.",
-                provider,
-            )
-            image_count = len(req.image_urls)
-            placeholder = " ".join(["[Image]"] * image_count)
-            if req.prompt:
-                req.prompt = f"{placeholder} {req.prompt}"
-            else:
-                req.prompt = placeholder
-            req.image_urls = []
-    if req.audio_urls:
-        provider_cfg = provider.provider_config.get("modalities", ["audio"])
-        if "audio" not in provider_cfg:
-            logger.debug(
-                "Provider %s does not support audio, using placeholder.",
-                provider,
-            )
-            audio_count = len(req.audio_urls)
-            placeholder = " ".join(["[Audio]"] * audio_count)
-            if req.prompt:
-                req.prompt = f"{placeholder} {req.prompt}"
-            else:
-                req.prompt = placeholder
-            req.audio_urls = []
-    if req.func_tool:
-        provider_cfg = provider.provider_config.get("modalities", ["tool_use"])
-        if "tool_use" not in provider_cfg:
-            logger.debug(
-                "Provider %s does not support tool_use, clearing tools.",
-                provider,
-            )
-            req.func_tool = None
-
-
-def _sanitize_context_by_modalities(
-    config: MainAgentBuildConfig,
-    provider: Provider,
-    req: ProviderRequest,
-) -> None:
-    if not config.sanitize_context_by_modalities:
-        return
-    if not isinstance(req.contexts, list) or not req.contexts:
-        return
-    modalities = provider.provider_config.get("modalities", None)
-    if not modalities or not isinstance(modalities, list):
-        return
-    supports_image = bool("image" in modalities)
-    supports_audio = bool("audio" in modalities)
-    supports_tool_use = bool("tool_use" in modalities)
-    if supports_image and supports_audio and supports_tool_use:
-        return
-
-    sanitized_contexts: list[dict] = []
-    removed_image_blocks = 0
-    removed_audio_blocks = 0
-    removed_tool_messages = 0
-    removed_tool_calls = 0
-
-    for msg in req.contexts:
-        if not isinstance(msg, dict):
-            continue
-        role = msg.get("role")
-        if not role:
-            continue
-
-        new_msg = msg
-        if not supports_tool_use:
-            if role == "tool":
-                removed_tool_messages += 1
-                continue
-            if role == "assistant" and "tool_calls" in new_msg:
-                if "tool_calls" in new_msg:
-                    removed_tool_calls += 1
-                new_msg.pop("tool_calls", None)
-                new_msg.pop("tool_call_id", None)
-
-        if not supports_image or not supports_audio:
-            content = new_msg.get("content")
-            if isinstance(content, list):
-                filtered_parts: list = []
-                removed_any_multimodal = False
-                for part in content:
-                    if isinstance(part, dict):
-                        part_type = str(part.get("type", "")).lower()
-                        if not supports_image and part_type in {"image_url", "image"}:
-                            removed_any_multimodal = True
-                            removed_image_blocks += 1
-                            continue
-                        if not supports_audio and part_type in {
-                            "audio_url",
-                            "input_audio",
-                        }:
-                            removed_any_multimodal = True
-                            removed_audio_blocks += 1
-                            continue
-                    filtered_parts.append(part)
-                if removed_any_multimodal:
-                    new_msg["content"] = filtered_parts
-
-        if role == "assistant":
-            content = new_msg.get("content")
-            has_tool_calls = bool(new_msg.get("tool_calls"))
-            if not has_tool_calls:
-                if not content:
-                    continue
-                if isinstance(content, str) and not content.strip():
-                    continue
-
-        sanitized_contexts.append(new_msg)
-
-    if (
-        removed_image_blocks
-        or removed_audio_blocks
-        or removed_tool_messages
-        or removed_tool_calls
-    ):
-        logger.debug(
-            "sanitize_context_by_modalities applied: "
-            "removed_image_blocks=%s, removed_audio_blocks=%s, "
-            "removed_tool_messages=%s, removed_tool_calls=%s",
-            removed_image_blocks,
-            removed_audio_blocks,
-            removed_tool_messages,
-            removed_tool_calls,
-        )
-    req.contexts = sanitized_contexts
+    _apply_workspace_extra_prompt(event, req)
 
 
 def _plugin_tool_fix(event: AstrMessageEvent, req: ProviderRequest) -> None:
@@ -981,9 +928,7 @@ def _plugin_tool_fix(event: AstrMessageEvent, req: ProviderRequest) -> None:
 
 
 async def _handle_webchat(
-    event: AstrMessageEvent,
-    req: ProviderRequest,
-    prov: Provider,
+    event: AstrMessageEvent, req: ProviderRequest, prov: Provider
 ) -> None:
     from astrbot.core import db_helper
 
@@ -1018,9 +963,7 @@ async def _handle_webchat(
         if not title or "<None>" in title:
             return
         logger.info(
-            "Generated chatui title for session %s: %s",
-            chatui_session_id,
-            title,
+            "Generated chatui title for session %s: %s", chatui_session_id, title
         )
         await db_helper.update_platform_session(
             session_id=chatui_session_id,
@@ -1057,10 +1000,15 @@ def _apply_sandbox_tools(
         os.environ["SHIPYARD_ENDPOINT"] = ep
         os.environ["SHIPYARD_ACCESS_TOKEN"] = at
 
-    req.func_tool.add_tool(EXECUTE_SHELL_TOOL)
-    req.func_tool.add_tool(PYTHON_TOOL)
-    req.func_tool.add_tool(FILE_UPLOAD_TOOL)
-    req.func_tool.add_tool(FILE_DOWNLOAD_TOOL)
+    tool_mgr = llm_tools
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(ExecuteShellTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(PythonTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(FileUploadTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(FileDownloadTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(FileReadTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(FileWriteTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(FileEditTool))
+    req.func_tool.add_tool(tool_mgr.get_builtin_tool(GrepTool))
     if booter == "shipyard_neo":
         # Neo-specific path rule: filesystem tools operate relative to sandbox
         # workspace root. Do not prepend "/workspace".
@@ -1096,22 +1044,38 @@ def _apply_sandbox_tools(
         # Browser tools: only register if profile supports browser
         # (or if capabilities are unknown because sandbox hasn't booted yet)
         if sandbox_capabilities is None or "browser" in sandbox_capabilities:
-            req.func_tool.add_tool(BROWSER_EXEC_TOOL)
-            req.func_tool.add_tool(BROWSER_BATCH_EXEC_TOOL)
-            req.func_tool.add_tool(RUN_BROWSER_SKILL_TOOL)
+            req.func_tool.add_tool(tool_mgr.get_builtin_tool(BrowserExecTool))
+            req.func_tool.add_tool(tool_mgr.get_builtin_tool(BrowserBatchExecTool))
+            req.func_tool.add_tool(tool_mgr.get_builtin_tool(RunBrowserSkillTool))
 
         # Neo-specific tools (always available for shipyard_neo)
-        req.func_tool.add_tool(GET_EXECUTION_HISTORY_TOOL)
-        req.func_tool.add_tool(ANNOTATE_EXECUTION_TOOL)
-        req.func_tool.add_tool(CREATE_SKILL_PAYLOAD_TOOL)
-        req.func_tool.add_tool(GET_SKILL_PAYLOAD_TOOL)
-        req.func_tool.add_tool(CREATE_SKILL_CANDIDATE_TOOL)
-        req.func_tool.add_tool(LIST_SKILL_CANDIDATES_TOOL)
-        req.func_tool.add_tool(EVALUATE_SKILL_CANDIDATE_TOOL)
-        req.func_tool.add_tool(PROMOTE_SKILL_CANDIDATE_TOOL)
-        req.func_tool.add_tool(LIST_SKILL_RELEASES_TOOL)
-        req.func_tool.add_tool(ROLLBACK_SKILL_RELEASE_TOOL)
-        req.func_tool.add_tool(SYNC_SKILL_RELEASE_TOOL)
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(GetExecutionHistoryTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(AnnotateExecutionTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(CreateSkillPayloadTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(GetSkillPayloadTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(CreateSkillCandidateTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(ListSkillCandidatesTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(EvaluateSkillCandidateTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(PromoteSkillCandidateTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(ListSkillReleasesTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(RollbackSkillReleaseTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(SyncSkillReleaseTool))
+
+    if booter == "cua":
+        req.system_prompt += (
+            "\n[CUA Desktop Control]\n"
+            "Use `astrbot_execute_shell` with `background=true` to launch GUI apps. "
+            'Use Firefox for browser tasks, for example `firefox "https://example.com"`. '
+            "After each visible step, call `astrbot_cua_screenshot` with "
+            "`send_to_user=true` and `return_image_to_llm=true` so the user can "
+            "monitor progress. When typing, inspect the screenshot first and confirm "
+            "the target field is focused and empty or safe to append to. Use "
+            "`astrbot_cua_mouse_click` for coordinates and `astrbot_cua_keyboard_type` "
+            "for text input; use text=`\\n` for Enter.\n"
+        )
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(CuaScreenshotTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(CuaMouseClickTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(CuaKeyboardTypeTool))
 
     req.system_prompt = f"{req.system_prompt or ''}\n{SANDBOX_MODE_PROMPT}\n"
 
@@ -1147,13 +1111,15 @@ async def _apply_web_search_tools(
         req.func_tool.add_tool(tool_mgr.get_builtin_tool(BochaWebSearchTool))
     elif provider == "brave":
         req.func_tool.add_tool(tool_mgr.get_builtin_tool(BraveWebSearchTool))
+    elif provider == "firecrawl":
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(FirecrawlWebSearchTool))
+        req.func_tool.add_tool(tool_mgr.get_builtin_tool(FirecrawlExtractWebPageTool))
     elif provider == "baidu_ai_search":
         req.func_tool.add_tool(tool_mgr.get_builtin_tool(BaiduWebSearchTool))
 
 
 def _get_compress_provider(
-    config: MainAgentBuildConfig,
-    plugin_context: Context,
+    config: MainAgentBuildConfig, plugin_context: Context
 ) -> Provider | None:
     if not config.llm_compress_provider_id:
         return None
@@ -1176,14 +1142,12 @@ def _get_compress_provider(
 
 
 def _get_fallback_chat_providers(
-    provider: Provider,
-    plugin_context: Context,
-    provider_settings: dict,
+    provider: Provider, plugin_context: Context, provider_settings: dict
 ) -> list[Provider]:
     fallback_ids = provider_settings.get("fallback_chat_models", [])
     if not isinstance(fallback_ids, list):
         logger.warning(
-            "fallback_chat_models setting is not a list, skip fallback providers.",
+            "fallback_chat_models setting is not a list, skip fallback providers."
         )
         return []
 
@@ -1246,7 +1210,7 @@ async def build_main_agent(
             if sel_model := event.get_extra("selected_model"):
                 req.model = sel_model
             if config.provider_wake_prefix and not event.message_str.startswith(
-                config.provider_wake_prefix,
+                config.provider_wake_prefix
             ):
                 return None
 
@@ -1264,7 +1228,7 @@ async def build_main_agent(
                         event.track_temporary_local_file(image_path)
                     req.image_urls.append(image_path)
                     req.extra_user_content_parts.append(
-                        TextPart(text=f"[Image Attachment: path {image_path}]"),
+                        TextPart(text=f"[Image Attachment: path {image_path}]")
                     )
                 elif isinstance(comp, Record):
                     audio_path = await comp.convert_to_file_path()
@@ -1275,15 +1239,17 @@ async def build_main_agent(
                     file_name = comp.name or os.path.basename(file_path)
                     req.extra_user_content_parts.append(
                         TextPart(
-                            text=f"[File Attachment: name {file_name}, path {file_path}]",
-                        ),
+                            text=f"[File Attachment: name {file_name}, path {file_path}]"
+                        )
                     )
+                elif isinstance(comp, Video):
+                    await _append_video_attachment(req, comp)
             # quoted message attachments
             reply_comps = [
                 comp for comp in event.message_obj.message if isinstance(comp, Reply)
             ]
             quoted_message_settings = _get_quoted_message_parser_settings(
-                config.provider_settings,
+                config.provider_settings
             )
             fallback_quoted_image_count = 0
             for comp in reply_comps:
@@ -1313,9 +1279,11 @@ async def build_main_agent(
                                     text=(
                                         f"[File Attachment in quoted message: "
                                         f"name {file_name}, path {file_path}]"
-                                    ),
-                                ),
+                                    )
+                                )
                             )
+                        elif isinstance(reply_comp, Video):
+                            await _append_video_attachment(req, reply_comp, quoted=True)
 
                 # Fallback quoted image extraction for reply-id-only payloads, or when
                 # embedded reply chain only contains placeholders (e.g. [Forward Message], [Image]).
@@ -1326,7 +1294,7 @@ async def build_main_agent(
                                 event,
                                 comp,
                                 settings=quoted_message_settings,
-                            ),
+                            )
                         )
                         remaining_limit = max(
                             config.max_quoted_fallback_images
@@ -1371,6 +1339,17 @@ async def build_main_agent(
 
     if isinstance(req.contexts, str):
         req.contexts = json.loads(req.contexts)
+    thread_selected_text = event.get_extra("thread_selected_text")
+    if isinstance(thread_selected_text, str) and thread_selected_text.strip():
+        req.extra_user_content_parts.append(
+            TextPart(
+                text=(
+                    "The user is asking in a side thread about this selected "
+                    "excerpt from the previous assistant answer:\n"
+                    f"<selected_excerpt>{thread_selected_text.strip()}</selected_excerpt>"
+                )
+            )
+        )
     req.image_urls = normalize_and_dedupe_strings(req.image_urls)
     req.audio_urls = normalize_and_dedupe_strings(req.audio_urls)
 
@@ -1393,10 +1372,8 @@ async def build_main_agent(
     if not req.session_id:
         req.session_id = event.unified_msg_origin
 
-    _modalities_fix(provider, req)
     _plugin_tool_fix(event, req)
     await _apply_web_search_tools(event, req, plugin_context)
-    _sanitize_context_by_modalities(config, provider, req)
 
     if config.llm_safety_mode:
         _apply_llm_safety_mode(config, req)
@@ -1404,7 +1381,7 @@ async def build_main_agent(
     if config.computer_use_runtime == "sandbox":
         _apply_sandbox_tools(config, req, req.session_id)
     elif config.computer_use_runtime == "local":
-        _apply_local_env_tools(req)
+        _apply_local_env_tools(req, plugin_context)
 
     agent_runner = AgentRunner()
     astr_agent_ctx = AstrAgentContext(
@@ -1420,8 +1397,8 @@ async def build_main_agent(
             req.func_tool = ToolSet()
         req.func_tool.add_tool(
             plugin_context.get_llm_tool_manager().get_builtin_tool(
-                SendMessageToUserTool,
-            ),
+                SendMessageToUserTool
+            )
         )
 
     if provider.provider_config.get("max_context_tokens", 0) <= 0:
@@ -1430,6 +1407,11 @@ async def build_main_agent(
             provider.provider_config["max_context_tokens"] = model_info["limit"][
                 "context"
             ]
+        else:
+            # fallback: default to configured fallback value
+            provider.provider_config["max_context_tokens"] = (
+                config.fallback_max_context_tokens
+            )
 
     if event.get_platform_name() == "webchat":
         asyncio.create_task(_handle_webchat(event, req, provider))
@@ -1440,6 +1422,15 @@ async def build_main_agent(
             if config.tool_schema_mode == "full"
             else TOOL_CALL_PROMPT_SKILLS_LIKE_MODE
         )
+
+        if config.computer_use_runtime == "local":
+            tool_prompt += (
+                f"\nCurrent workspace you can use: "
+                f"`{_get_workspace_path_for_umo(event.unified_msg_origin)}`\n"
+                "Unless the user explicitly specifies a different directory, "
+                "perform all file-related operations in this workspace.\n"
+            )
+
         req.system_prompt += f"\n{tool_prompt}\n"
 
     action_type = event.get_extra("action_type")
@@ -1460,18 +1451,18 @@ async def build_main_agent(
         llm_compress_keep_recent=config.llm_compress_keep_recent,
         llm_compress_provider=_get_compress_provider(config, plugin_context),
         truncate_turns=config.dequeue_context_length,
-        custom_compressor=_build_custom_compressor(
-            config,
-            plugin_context,
-            provider=provider,
-            conversation_id=req.conversation.cid if req.conversation else None,
-        ),
         enforce_max_turns=config.max_context_length,
         tool_schema_mode=config.tool_schema_mode,
         fallback_providers=_get_fallback_chat_providers(
-            provider,
-            plugin_context,
-            config.provider_settings,
+            provider, plugin_context, config.provider_settings
+        ),
+        tool_result_overflow_dir=(
+            get_astrbot_system_tmp_path()
+            if req.func_tool and req.func_tool.get_tool("astrbot_file_read_tool")
+            else None
+        ),
+        read_tool=(
+            req.func_tool.get_tool("astrbot_file_read_tool") if req.func_tool else None
         ),
     )
 

@@ -2,8 +2,7 @@ import { defineStore } from 'pinia';
 import { router } from '@/router';
 import axios from 'axios';
 
-export const useAuthStore = defineStore({
-  id: 'auth',
+export const useAuthStore = defineStore("auth", {
   state: () => ({
     // @ts-ignore
     username: '',
@@ -70,6 +69,7 @@ export const useAuthStore = defineStore({
       this.username = '';
       localStorage.removeItem('user');
       localStorage.removeItem('token');
+      void axios.post('/api/auth/logout').catch(() => undefined);
       router.push('/auth/login');
     },
     has_token(): boolean {
