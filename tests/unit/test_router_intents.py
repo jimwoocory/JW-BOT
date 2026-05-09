@@ -499,7 +499,7 @@ def test_extract_prompt_from_message_no_change():
 
 def test_intent_router_from_yaml(tmp_path):
     """IntentRouter.from_yaml 应正确加载配置文件。"""
-    config_path = Path("/Users/dianchi/JW-Bot/astrbot/core/router_config.yaml")
+    config_path = Path("/Users/dianchi/DC-Agent/astrbot/core/router_config.yaml")
     if config_path.exists():
         router = IntentRouter.from_yaml(config_path)
         assert isinstance(router, IntentRouter)
@@ -547,7 +547,7 @@ def test_intent_router_default_threshold():
 @pytest.fixture
 def intent_router():
     """使用实际配置文件创建 IntentRouter。"""
-    config_path = Path("/Users/dianchi/JW-Bot/astrbot/core/router_config.yaml")
+    config_path = Path("/Users/dianchi/DC-Agent/astrbot/core/router_config.yaml")
     return IntentRouter.from_yaml(config_path)
 
 

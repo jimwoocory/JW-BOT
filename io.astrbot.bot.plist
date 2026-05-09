@@ -7,11 +7,11 @@
     
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/dianchi/JW-Bot/start-all.sh</string>
+        <string>/Users/dianchi/DC-Agent/start-all.sh</string>
     </array>
     
     <key>WorkingDirectory</key>
-    <string>/Users/dianchi/JW-Bot</string>
+    <string>/Users/dianchi/DC-Agent</string>
     
     <key>RunAtLoad</key>
     <true/>
@@ -20,10 +20,10 @@
     <true/>
     
     <key>StandardOutPath</key>
-    <string>/Users/dianchi/JW-Bot/astrbot.log</string>
+    <string>/Users/dianchi/DC-Agent/astrbot.log</string>
     
     <key>StandardErrorPath</key>
-    <string>/Users/dianchi/JW-Bot/astrbot.err.log</string>
+    <string>/Users/dianchi/DC-Agent/astrbot.err.log</string>
     
     <key>EnvironmentVariables</key>
     <dict>

@@ -2,7 +2,7 @@
 烟雾测试脚本 — 验证 SessionRouter 的实际行为。
 """
 import sys
-sys.path.insert(0, '/Users/dianchi/JW-Bot')
+sys.path.insert(0, '/Users/dianchi/DC-Agent')
 
 from pathlib import Path
 from astrbot.plugins.hermes_bridge.router import SessionRouter, PlatformUser, PlatformType

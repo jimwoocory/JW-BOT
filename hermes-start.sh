@@ -1,7 +1,7 @@
 #!/bin/bash
 # Hermes Agent 启动脚本
 
-HERMES_DIR="/Users/dianchi/JW-Bot/hermes-agent-temp"
+HERMES_DIR="/Users/dianchi/DC-Agent/hermes-agent"
 VENV_PYTHON="$HERMES_DIR/venv/bin/python"
 
 echo "╔═══════════════════════════════════════════════╗"
@@ -17,7 +17,7 @@ if [ ! -f "$VENV_PYTHON" ]; then
 fi
 
 # 设置环境变量
-export HERMES_HOME="/Users/dianchi/JW-Bot/hermes-config"
+export HERMES_HOME="/Users/dianchi/DC-Agent/hermes-config"
 
 # 启动 Hermes
 echo "启动 Hermes Agent..."
