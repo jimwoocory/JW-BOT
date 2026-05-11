@@ -47,6 +47,7 @@ from .star_handler import EventType, StarHandlerMetadata, star_handlers_registry
 logger = logging.getLogger("astrbot")
 
 if TYPE_CHECKING:
+    from astrbot.core.case import Case, CaseEngine, CaseStore
     from astrbot.core.cron.manager import CronJobManager
     from astrbot.core.harness import HarnessEngine, HarnessTask, HarnessTaskStore
 
@@ -83,6 +84,8 @@ class Context:
         subagent_orchestrator: SubAgentOrchestrator | None = None,
         harness_engine: HarnessEngine | None = None,
         harness_store: HarnessTaskStore | None = None,
+        case_engine: CaseEngine | None = None,
+        case_store: CaseStore | None = None,
     ) -> None:
         self._event_queue = event_queue
         """事件队列。消息平台通过事件队列传递消息事件。"""
@@ -111,6 +114,10 @@ class Context:
         """Harness task engine, initialized by core lifecycle."""
         self.harness_store = harness_store
         """Harness task store sidecar, initialized by core lifecycle."""
+        self.case_engine = case_engine
+        """Case aggregation engine, initialized by core lifecycle."""
+        self.case_store = case_store
+        """Case aggregation sidecar store, initialized by core lifecycle."""
 
     async def get_current_harness_task(
         self,
@@ -124,6 +131,12 @@ class Context:
         return await self.harness_store.get_latest_task_for_conversation(
             conversation_id
         )
+
+    async def get_current_case(self, umo: str) -> Case | None:
+        """Return the latest active (non-terminal) case for the session."""
+        if self.case_engine is None:
+            return None
+        return await self.case_engine.get_current_case_for_session(umo)
 
     async def append_harness_trace(
         self,

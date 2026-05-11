@@ -150,8 +150,44 @@ class RouterStage:
             "如员工不满意将升级至 Hermes。",
             task.task_id[:8],
         )
+        await self._maybe_attach_to_active_case(event, task)
         # Do not intercept the event; the normal AstrBot LLM should answer first.
         return False
+
+    async def _maybe_attach_to_active_case(
+        self,
+        event: AstrMessageEvent,
+        task: Any,
+    ) -> None:
+        """Soft-attach a freshly created Harness task to the session's active case.
+
+        Disabled when ``case.auto_attach_task`` config is False, when no Case
+        engine is wired (e.g. legacy installs), or when the session has no
+        active case. Failures never propagate — Harness keeps working without
+        Case linkage.
+        """
+        plugin_context = self.ctx.plugin_manager.context
+        case_engine = getattr(plugin_context, "case_engine", None)
+        if case_engine is None:
+            return
+        cfg = plugin_context.get_config() or {}
+        case_cfg = cfg.get("case", {}) if isinstance(cfg, dict) else {}
+        if case_cfg.get("auto_attach_task", True) is False:
+            return
+        try:
+            case = await case_engine.get_current_case_for_session(
+                event.unified_msg_origin,
+            )
+            if case is None:
+                return
+            await case_engine.attach_task(case.case_id, task.task_id)
+            logger.info(
+                "[RouterStage] task %s auto-attached to case %s",
+                task.task_id[:8],
+                case.case_id[:8],
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("[RouterStage] case 自动挂接失败：%s", exc)
 
     async def _check_hermes_escalation(self, event: AstrMessageEvent) -> bool:
         """Escalate dissatisfied follow-up messages to Hermes when appropriate."""
