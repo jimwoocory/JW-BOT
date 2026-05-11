@@ -19,6 +19,7 @@ from asyncio import Queue
 from astrbot.api import logger, sp
 from astrbot.core import LogBroker, LogManager
 from astrbot.core.astrbot_config_mgr import AstrBotConfigManager
+from astrbot.core.case import CaseEngine, CaseStore
 from astrbot.core.config.default import VERSION
 from astrbot.core.conversation_mgr import ConversationManager
 from astrbot.core.cron import CronJobManager
@@ -70,6 +71,8 @@ class AstrBotCoreLifecycle:
         self.harness_store: HarnessTaskStore | None = None
         self.harness_engine: HarnessEngine | None = None
         self.harness_memory_store: HarnessMemoryStore | None = None
+        self.case_store: CaseStore | None = None
+        self.case_engine: CaseEngine | None = None
         self._default_chat_provider_warning_emitted = False
 
         # 设置代理
@@ -253,6 +256,16 @@ class AstrBotCoreLifecycle:
             memory_promoter=memory_promoter,
         )
 
+        # 初始化 Case 聚合层 sidecar (W0 Plan A 2A-0).
+        self.case_store = CaseStore(
+            os.path.join(get_astrbot_data_path(), "cases.db"),
+        )
+        await self.case_store.initialize()
+        self.case_engine = CaseEngine(
+            self.case_store,
+            harness_store=self.harness_store,
+        )
+
         # Dynamic subagents (handoff tools) from config.
         await self._init_or_reload_subagent_orchestrator()
 
@@ -272,6 +285,8 @@ class AstrBotCoreLifecycle:
             self.subagent_orchestrator,
             self.harness_engine,
             self.harness_store,
+            self.case_engine,
+            self.case_store,
         )
 
         # 初始化插件管理器
