@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
@@ -14,17 +15,23 @@ from astrbot.core.message.message_event_result import MessageEventResult
 from astrbot.core.pipeline.context import PipelineContext
 from astrbot.core.platform.astr_message_event import AstrMessageEvent
 from astrbot.core.router import Intent, IntentRouter
+from astrbot.core.router_decision_logger import (
+    RouterDecisionLogger,
+    build_decision_record,
+)
 from astrbot.core.star.filter.command_group import CommandGroupFilter
 from astrbot.core.star.filter.permission import PermissionTypeFilter
 from astrbot.core.star.session_plugin_manager import SessionPluginManager
 from astrbot.core.star.star import star_map
 from astrbot.core.star.star_handler import EventType, star_handlers_registry
+from astrbot.core.utils.astrbot_path import get_astrbot_data_path
 
 
 class RouterStage:
     def __init__(self) -> None:
         self.ctx: PipelineContext | None = None
         self.router: IntentRouter | None = None
+        self.decision_logger: RouterDecisionLogger | None = None
         self._satisfaction_detector = SatisfactionDetector()
 
     async def initialize(self, ctx: PipelineContext) -> None:
@@ -34,6 +41,14 @@ class RouterStage:
             config_path,
             llm_provider=self._classify_with_llm,
         )
+        # Phase R0.2: 落盘每条路由决策，供 benchmark / clarify 回写 / 漂移监控消费。
+        try:
+            self.decision_logger = RouterDecisionLogger(
+                Path(get_astrbot_data_path()) / "router_decisions.jsonl",
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("[RouterStage] 决策日志初始化失败：%s", exc)
+            self.decision_logger = None
 
     async def route(self, event: AstrMessageEvent) -> bool:
         if self.ctx is None or self.router is None:
@@ -47,11 +62,16 @@ class RouterStage:
             return True
 
         # Fall back to normal intent routing.
+        classify_started = time.perf_counter()
         intent = await self.router.classify(
             event.message_str,
             self._build_context(event),
         )
+        classify_latency_ms = (time.perf_counter() - classify_started) * 1000.0
         event.set_extra("router_intent", asdict(intent))
+
+        # Phase R0.1 / R0.2: 把分类决策落到 trace + jsonl，供后续 bench / dashboard 消费。
+        await self._record_classify_observability(event, intent, classify_latency_ms)
 
         if intent.category == "task" and intent.workflow_kind:
             return await self._handle_task_intent(event, intent)
@@ -445,6 +465,64 @@ class RouterStage:
         event.set_extra("activated_handlers", activated_handlers)
         event.set_extra("handlers_parsed_params", handlers_parsed_params)
         return False
+
+    async def _record_classify_observability(
+        self,
+        event: AstrMessageEvent,
+        intent: Intent,
+        latency_ms: float,
+    ) -> None:
+        """把 classify 结果同时写 trace span 与 jsonl 决策日志（Phase R0.1 / R0.2）。
+
+        任何子步骤失败都不能阻断路由主流程。
+        """
+        matched_by = str(intent.metadata.get("matched_by") or "default")
+        llm_called = matched_by == "llm"
+        fallback_threshold = (
+            float(getattr(self.router, "fallback_threshold", 0.75))
+            if self.router is not None
+            else 0.75
+        )
+
+        span_id: str | None = None
+        try:
+            event.trace.record(
+                "router_classify",
+                category=intent.category,
+                intent_type=intent.intent_type,
+                confidence=intent.confidence,
+                workflow_kind=intent.workflow_kind,
+                skill_name=intent.skill_name,
+                matched_by=matched_by,
+                llm_called=llm_called,
+                fallback_threshold=fallback_threshold,
+                latency_ms=round(latency_ms, 3),
+            )
+            span_id = getattr(event.trace, "span_id", None)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("[RouterStage] trace.record 失败：%s", exc)
+
+        if self.decision_logger is None:
+            return
+        try:
+            record = build_decision_record(
+                message=event.message_str or "",
+                umo=event.unified_msg_origin,
+                platform_id=event.get_platform_id(),
+                category=intent.category,
+                intent_type=intent.intent_type,
+                confidence=intent.confidence,
+                workflow_kind=intent.workflow_kind,
+                skill_name=intent.skill_name,
+                matched_by=matched_by,
+                llm_called=llm_called,
+                fallback_threshold=fallback_threshold,
+                latency_ms=latency_ms,
+                span_id=span_id,
+            )
+            await self.decision_logger.log(record)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("[RouterStage] 决策日志写入失败：%s", exc)
 
     async def _classify_with_llm(
         self,
