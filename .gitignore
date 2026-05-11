@@ -28,7 +28,16 @@ nas_sync/state.json
 nas_sync/watcher.log
 nas_sync/mount.log
 data_v3.db
-data
+# `data/` is mostly runtime state and SHOULD NOT be committed wholesale.
+# Exception cascade below tracks ONLY the production hermes_bridge plugin so
+# G2/Phase 0.3 fixes don't silently get lost between code review and runtime.
+# (W0 finding 2026-05-11)
+data/*
+!data/plugins/
+data/plugins/*
+!data/plugins/hermes_bridge/
+data/plugins/hermes_bridge/__pycache__/
+data/plugins/hermes_bridge/*.pyc
 configs/session
 configs/config.yaml
 cmd_config.json

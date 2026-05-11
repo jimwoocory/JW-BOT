@@ -2,9 +2,11 @@
 
 > **决策件**：本文档把上周 Codex 出的[《DC-Agent 二期需求对比报告》](../deliverables/DC-Agent二期需求对比报告.pdf)、本周对老总指定 case 流的落地评估、以及现有 Harness / Router 全栈路线图合并，输出**单页可决策的二期总规划**。
 >
-> - 报告日期：2026-05-09
+> - 报告日期：2026-05-09（创建）/ 2026-05-11（W0 完成后更新）
 > - 适用周期：2026-05-11 ~ 2026-07
 > - 上游输入：3 份内部 DOC（Harness 路线图、Router 路线图、Case 落地评估即本文档 §3）+ 1 份 Codex 问卷分析 PDF
+>
+> **🟢 更新（2026-05-11）**：W0 已完成。G1 经验证不需要、G2 + 2A-0 已合并到 master；W1 / 2A-1 已启动。详见 §6.1。
 
 ---
 
@@ -16,8 +18,9 @@
 | **总框架** | 2A 员工可感知 + 2B 系统深度（沿用 Codex 拆分） |
 | **本次修订** | 2A 前插一周（G1+G2 + Case 聚合 v0）；2A-3 由"只读"扩为"读+写归档" |
 | **总工期** | 6 周 2A + 灰度 1 周 + 2B 持续推进 |
-| **首期投入** | 7h 紧急修复 + 12h Case 聚合 = **第一周可完成** |
-| **可立刻拍板的事** | "**先做 G1+G2 (7h) → 2A-0 Case 聚合 (1 周) → 按 Codex 时间轴推进 2A → 再 2B**" |
+| **W0 实际投入** | **0h（G1 验证不需要）+ ~1h40min（G2 cowork）+ ~1h40min（2A-0 cowork）≈ 3.3h 总耗**（原估 7h+12h=19h，实际 cowork 比预计快 5-6 倍）|
+| **W0 完成状态** | ✅ G1 验证不需要 / ✅ G2 合并（commit `e9122889d`）/ ✅ 2A-0 合并（commit `59c76a0a3`）/ 全量 251/251 测试通过 |
+| **W1 启动状态** | ⏳ 2A-1（项目群聊总结）cowork Phase 2 实施中 |
 
 ---
 
@@ -136,9 +139,47 @@ W6+ 开始的 2B 不是从零开发，而是按已有的两份工程路线图推
 
 请老总今天 / 明天拍板以下三项，开 W0 工单：
 
-1. **同意 G1+G2 + Case 聚合 v0 前置**（W0 共 19h，本周内完成）  → [ ] Yes / [ ] No
-2. **2A-3 改名"飞书资料读+写"，含归档闭环 G4**  → [ ] Yes / [ ] No
-3. **2B 启动门设在 06-18，参照 Harness/Router 路线图节奏**  → [ ] Yes / [ ] No
+1. **同意 G1+G2 + Case 聚合 v0 前置**（W0 共 19h，本周内完成）  → [✅] Yes（2026-05-11 已落地）
+2. **2A-3 改名"飞书资料读+写"，含归档闭环 G4**  → [ ] Yes / [ ] No（待拍）
+3. **2B 启动门设在 06-18，参照 Harness/Router 路线图节奏**  → [ ] Yes / [ ] No（待拍）
+
+---
+
+## 6.1 W0 实际进度对照（2026-05-11 更新）
+
+**结论：W0 已完成，0 工时延期、0 主干破坏、全量 251/251 测试通过。**
+
+| W0 任务 | 计划 | 实际 | 状态 |
+|---------|------|------|------|
+| **G1** Router 直通 Hermes 派发 | 3h | **0h（验证不需要）** | ✅ SatisfactionDetector 已覆盖"让 hermes / 交给 hermes"等显式请求，confidence 0.98 直走 `_handle_hermes_escalation`，无需新增代码。详见 commit ce9445610 之后的 verification log |
+| **G2** Hermes Bridge 异步回群 + 重试 + DLQ | 4h（cowork 估）| ~1h40min（cowork 实测） | ✅ 合并 commit `e9122889d` |
+| **2A-0** Case 聚合层 v0 + `/case` CLI | 12h（cowork 估）| ~1h40min（cowork 实测） | ✅ 合并 commit `59c76a0a3` |
+
+**已交付的能力**：
+
+1. **G2 解锁了 Step 6→7 闭环**：团队负责人在群里说"让 hermes 来" → Hermes 派发 → 深度分析 → **结果异步回推到群**（指数退避重试 1s/2s/4s + 4xx 直 DLQ + 5xx/超时重试，HMAC 入站校验保留）
+2. **2A-0 提供了 Case 抽象**：`/case new <name> [--client <名>]` / `/case context` / `/case attach <task_id>` / `/case archive` / `/case status` / `/case list`，Case 不替代 Task，是其聚合容器；`data/cases.db` 与 `harness.db` 完全隔离；router 自动把新建 task 软挂到当前活跃 case
+
+**今天 master 上的 commit 链路**（cowork 一日成果）：
+
+```
+139997113  Merge feat/g2-hermes-callback           ← W0 完成标志
+87daf8865  Merge feat/2a0-case-aggregation
+e9122889d  feat(hermes_bridge): async callback     ← G2 实装
+59c76a0a3  feat(case): Case aggregation v0         ← 2A-0 实装
+c16e4db62  docs: unified Phase II plan             ← 本文档创建
+287e815b4  test(router): benchmark v0 (R0.5+R0.6)
+3c074fc1c  feat(router): trace + jsonl logger (R0.1+R0.2)
+3314c5791  docs: router roadmap
+ce9445610  feat(harness): sensor hardening
+```
+
+**遗留事项（W1 期间补）**：
+
+- ⚠️ `data/plugins/hermes_bridge/hermes_bridge.py` 是 .gitignore 的生产 v2 实装；G2 的修改在 `astrbot/plugins/hermes_bridge/__init__.py` 已入仓但 v2 文件 ops 需手动同步——**建议把 v2 路径从 .gitignore 移除让其入仓，避免下次重复痛点**
+- 🟡 Case archive_hook v0 仅打日志，预留给 W3 / 2A-3（含 G4 归档闭环）接 NAS
+
+**W1 启动状态**：W1 / 2A-1（项目群聊总结）cowork chip 已派、Phase 1 接口设计已通过 review、Phase 2 实现进行中，预计 2026-05-11 当晚或 05-12 上午完成。
 
 ---
 
