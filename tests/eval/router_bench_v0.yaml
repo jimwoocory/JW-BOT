@@ -1,0 +1,185 @@
+# Router Benchmark v0 — Phase R0.5
+#
+# 50 条 ground-truth 样本，覆盖 4 workflow + 10+ skill + 通用聊天 + OOS。
+# 每条样本：
+#   id:       唯一标识，便于回归对比
+#   message:  发送给 router 的原始消息文本
+#   expect:   期望的 Intent 字段子集（category 必填，其余可选）
+#   notes:    可选说明，仅供阅读
+#
+# 评测时 LLM fallback 默认关闭——本基准衡量"纯规则层"准确率，
+# 给后续 R2 嵌入分类器和 R3 LLM-judge 一条清晰的基线。
+
+# ── Task: marketing_plan (4 条) ────────────────────────────────────────────────
+- id: task-marketing-1
+  message: "营销计划怎么做"
+  expect: { category: task, workflow_kind: marketing_plan, intent_type: marketing_plan }
+- id: task-marketing-2
+  message: "帮我写一份推广计划"
+  expect: { category: task, workflow_kind: marketing_plan }
+- id: task-marketing-3
+  message: "下个季度的营销方案要赶紧搞起来"
+  expect: { category: task, workflow_kind: marketing_plan }
+- id: task-marketing-4
+  message: "渠道规划要不要做"
+  expect: { category: task, workflow_kind: marketing_plan }
+
+# ── Task: content_delivery (3 条) ──────────────────────────────────────────────
+- id: task-content-1
+  message: "内容交付清单麻烦整理一下"
+  expect: { category: task, workflow_kind: content_delivery }
+- id: task-content-2
+  message: "这一批的交付物呢"
+  expect: { category: task, workflow_kind: content_delivery }
+- id: task-content-3
+  message: "素材交付时间表"
+  expect: { category: task, workflow_kind: content_delivery }
+
+# ── Task: project_followup (3 条) ──────────────────────────────────────────────
+- id: task-followup-1
+  message: "今天的项目跟进汇报"
+  expect: { category: task, workflow_kind: project_followup }
+- id: task-followup-2
+  message: "follow-up 一下昨天的需求"
+  expect: { category: task, workflow_kind: project_followup }
+- id: task-followup-3
+  message: "项目 followup 你来负责"
+  expect: { category: task, workflow_kind: project_followup }
+
+# ── Task: approval_request (3 条) ──────────────────────────────────────────────
+- id: task-approval-1
+  message: "发起审批：差旅报销"
+  expect: { category: task, workflow_kind: approval_request }
+- id: task-approval-2
+  message: "这个事情需要审批"
+  expect: { category: task, workflow_kind: approval_request }
+- id: task-approval-3
+  message: "approval request for budget"
+  expect: { category: task, workflow_kind: approval_request }
+
+# ── Task: /task new command (2 条) ─────────────────────────────────────────────
+- id: task-new-1
+  message: "/task new"
+  expect: { category: task, intent_type: task_new }
+- id: task-new-2
+  message: "/task new 我要创建一个新任务"
+  expect: { category: task, intent_type: task_new }
+
+# ── Skill: dreamina exact patterns (5 条) ──────────────────────────────────────
+- id: skill-dreamina-img-1
+  message: "生成图片 一只赛博朋克猫"
+  expect: { category: skill, skill_name: dreamina_plugin, intent_type: dreamina_image }
+- id: skill-dreamina-video-1
+  message: "生成视频 海边日落"
+  expect: { category: skill, skill_name: dreamina_plugin, intent_type: dreamina_video }
+- id: skill-dreamina-i2v-1
+  message: "图片转视频 这张海报"
+  expect: { category: skill, skill_name: dreamina_plugin, intent_type: dreamina_image2video }
+- id: skill-dreamina-credit-1
+  message: "即梦余额"
+  expect: { category: skill, skill_name: dreamina_plugin, intent_type: dreamina_credit }
+- id: skill-dreamina-tasklist-1
+  message: "即梦任务列表"
+  expect: { category: skill, skill_name: dreamina_plugin, intent_type: dreamina_task_list }
+
+# ── Skill: dreamina keyword fuzzy (3 条) ───────────────────────────────────────
+- id: skill-dreamina-img-fuzzy-1
+  message: "帮我画一张赛博朋克风格的海报"
+  expect: { category: skill, skill_name: dreamina_plugin, intent_type: dreamina_image }
+- id: skill-dreamina-img-fuzzy-2
+  message: "做一张图片当封面用"
+  expect: { category: skill, skill_name: dreamina_plugin, intent_type: dreamina_image }
+- id: skill-dreamina-video-fuzzy-1
+  message: "做个视频片头"
+  expect: { category: skill, skill_name: dreamina_plugin, intent_type: dreamina_video }
+
+# ── Skill: PowerPoint (2 条) ───────────────────────────────────────────────────
+- id: skill-ppt-1
+  message: "做PPT 季度总结"
+  expect: { category: skill, skill_name: powerpoint }
+- id: skill-ppt-2
+  message: "生成PPT 给客户用"
+  expect: { category: skill, skill_name: powerpoint }
+
+# ── Skill: github (2 条) ───────────────────────────────────────────────────────
+- id: skill-github-1
+  message: "github issue 列表能看吗"
+  expect: { category: skill, skill_name: github }
+- id: skill-github-2
+  message: "帮忙检查一下 pull request"
+  expect: { category: skill, skill_name: github }
+
+# ── Skill: google-workspace / notion / find-nearby / arxiv (4 条) ──────────────
+- id: skill-gws-1
+  message: "把内容同步到 google docs"
+  expect: { category: skill, skill_name: google-workspace }
+- id: skill-notion-1
+  message: "notion 数据库里找一下"
+  expect: { category: skill, skill_name: notion }
+- id: skill-nearby-1
+  message: "附近餐厅推荐一下"
+  expect: { category: skill, skill_name: find-nearby }
+- id: skill-arxiv-1
+  message: "找论文 transformer 综述"
+  expect: { category: skill, skill_name: arxiv }
+
+# ── Hermes 显式升级 (2 条) ──────────────────────────────────────────────────────
+- id: task-hermes-1
+  message: "这个交给hermes 来处理吧"
+  expect: { category: task, intent_type: hermes_escalation }
+- id: task-hermes-2
+  message: "让hermes 深入研究一下"
+  expect: { category: task, intent_type: hermes_escalation }
+
+# ── Conversation: 通用闲聊 / 信息查询 (10 条) ──────────────────────────────────
+- id: conv-1
+  message: "你好"
+  expect: { category: conversation }
+- id: conv-2
+  message: "今天天气怎么样"
+  expect: { category: conversation }
+- id: conv-3
+  message: "谢谢"
+  expect: { category: conversation }
+- id: conv-4
+  message: "我有点累"
+  expect: { category: conversation }
+- id: conv-5
+  message: "你是谁"
+  expect: { category: conversation }
+- id: conv-6
+  message: "解释一下什么是 transformer"
+  expect: { category: conversation }
+- id: conv-7
+  message: "明天会议几点开始"
+  expect: { category: conversation }
+- id: conv-8
+  message: "再见"
+  expect: { category: conversation }
+- id: conv-9
+  message: "嗯"
+  expect: { category: conversation }
+- id: conv-10
+  message: "好的"
+  expect: { category: conversation }
+
+# ── OOS / 极端样本 (6 条) ──────────────────────────────────────────────────────
+- id: oos-empty
+  message: ""
+  expect: { category: conversation }
+  notes: 空字符串应安全落到默认分支
+- id: oos-whitespace
+  message: "   "
+  expect: { category: conversation }
+- id: oos-emoji
+  message: "🙏🏻🤝👍"
+  expect: { category: conversation }
+- id: oos-long
+  message: "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore"
+  expect: { category: conversation }
+- id: oos-mixed
+  message: "嗯嗯 ok 知道了 thanks"
+  expect: { category: conversation }
+- id: oos-numbers
+  message: "12345 67890"
+  expect: { category: conversation }
