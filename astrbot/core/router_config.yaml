@@ -181,6 +181,15 @@ skill_intents:
     intent_type: "hermes_agent"
     skill_name: "hermes-agent"
 
+  # W1 / 2A-1 项目群聊总结：员工问卷 82% 强需求
+  # 触发条件：@DC-Agent + 明确总结关键词（"群聊总结" / "总结今天" 等）
+  # 故意只匹配组合词，避免误触发 "我今天总结了一下" 这种叙述
+  - keywords: ["群聊总结", "总结群", "汇总群", "总结今天", "总结昨天", "总结最近", "总结一下", "汇总待办", "聊天总结"]
+    confidence: 0.96
+    category: "skill"
+    intent_type: "group_summary"
+    skill_name: "group_summary"
+
 llm_fallback:
   system_prompt: |
     你是一个 AstrBot Router 意图分类器。你的唯一任务是把用户消息分类成 task、skill 或 conversation。

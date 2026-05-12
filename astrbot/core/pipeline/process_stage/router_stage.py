@@ -3,12 +3,20 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import asdict
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import aiohttp
 
 from astrbot.core import logger
+from astrbot.core.group_summary import (
+    fetch_group_messages,
+    format_summary,
+    parse_time_range,
+    summarize_group_chat,
+)
+from astrbot.core.group_summary.history_fetcher import UnsupportedPlatformError
 from astrbot.core.harness import create_workflow_request
 from astrbot.core.harness.satisfaction import SatisfactionDetector, SatisfactionSignal
 from astrbot.core.message.message_event_result import MessageEventResult
@@ -78,6 +86,10 @@ class RouterStage:
 
         if intent.category == "task" and intent.intent_type == "task_new":
             return await self._handle_task_new_intent(event, intent)
+
+        # W1 / 2A-1: inline 处理群聊总结（没有对应 Star handler）
+        if intent.category == "skill" and intent.skill_name == "group_summary":
+            return await self._handle_group_summary(event, intent)
 
         if intent.category == "skill":
             return await self._handle_skill_intent(event, intent)
@@ -501,6 +513,109 @@ class RouterStage:
         event.set_extra("activated_handlers", activated_handlers)
         event.set_extra("handlers_parsed_params", handlers_parsed_params)
         return False
+
+    async def _handle_group_summary(
+        self, event: AstrMessageEvent, intent: Intent
+    ) -> bool:
+        """W1 / 2A-1: 群聊总结。
+
+        流程：找 provider + platform → parse_time_range → fetch_group_messages
+              → summarize_group_chat → format_summary → 回群。
+        任何关键失败都给用户明确文案（低打扰原则），不沉默。
+        Case 软挂接：成功时把 summary 当作 deliverable 挂到当前活跃 case。
+        """
+        plugin_context = self.ctx.plugin_manager.context
+
+        provider = plugin_context.get_using_provider(event.unified_msg_origin)
+        if provider is None:
+            event.set_result(
+                MessageEventResult()
+                .message("⚠️ 当前未配置 LLM provider，无法做群聊总结")
+                .use_t2i(False)
+                .stop_event()
+            )
+            return True
+
+        # 找当前平台实例
+        platform_inst = None
+        target_id = event.get_platform_id()
+        for inst in plugin_context.platform_manager.platform_insts:
+            inst_id = ""
+            try:
+                inst_id = inst.meta().id
+            except Exception:
+                inst_id = ""
+            if inst_id == target_id:
+                platform_inst = inst
+                break
+        if platform_inst is None:
+            event.set_result(
+                MessageEventResult()
+                .message(f"⚠️ 未找到平台实例 {target_id!r}，无法拉取群聊历史")
+                .use_t2i(False)
+                .stop_event()
+            )
+            return True
+
+        # 解析时间范围 hint（从消息文本里抠）
+        hint = (event.message_str or "").strip()
+        time_range = parse_time_range(hint, now=datetime.now(timezone.utc))
+
+        # 拉历史
+        try:
+            messages = await fetch_group_messages(
+                platform_inst=platform_inst,
+                message_history_manager=plugin_context.message_history_manager,
+                event=event,
+                time_range=time_range,
+            )
+        except UnsupportedPlatformError as exc:
+            event.set_result(
+                MessageEventResult()
+                .message(f"⚠️ 当前平台暂不支持群聊总结：{exc}")
+                .use_t2i(False)
+                .stop_event()
+            )
+            return True
+
+        if not messages:
+            event.set_result(
+                MessageEventResult()
+                .message(f"⚠️ 在「{time_range.description}」窗口内没有可总结的群聊消息")
+                .use_t2i(False)
+                .stop_event()
+            )
+            return True
+
+        # 调 LLM 总结
+        summary = await summarize_group_chat(
+            messages, llm_provider=provider, time_range=time_range
+        )
+
+        # 回群
+        md = format_summary(summary)
+        event.set_result(MessageEventResult().message(md).use_t2i(False).stop_event())
+
+        # Case 软挂接（失败不阻断）
+        try:
+            case = await plugin_context.get_current_case(event.unified_msg_origin)
+            if case and plugin_context.case_engine is not None:
+                await plugin_context.case_engine.add_deliverable(
+                    case.case_id,
+                    kind="group_summary",
+                    path=f"in-memory://summary-{datetime.now(timezone.utc).isoformat()}",
+                    version=case.version,
+                )
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("[group_summary] Case soft-attach 跳过（不阻断）：%s", exc)
+
+        logger.info(
+            "[group_summary] 完成总结 umo=%s msg_count=%d range=%s",
+            event.unified_msg_origin,
+            summary.message_count,
+            time_range.description,
+        )
+        return True
 
     async def _record_classify_observability(
         self,
