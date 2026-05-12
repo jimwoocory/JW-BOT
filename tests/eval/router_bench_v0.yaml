@@ -123,6 +123,23 @@
   message: "找论文 transformer 综述"
   expect: { category: skill, skill_name: arxiv }
 
+# ── Skill: group_summary (W1 / 2A-1) (5 条) ───────────────────────────────────
+- id: skill-summary-1
+  message: "群聊总结一下"
+  expect: { category: skill, skill_name: group_summary, intent_type: group_summary }
+- id: skill-summary-2
+  message: "@DC-Agent 总结今天的"
+  expect: { category: skill, skill_name: group_summary, intent_type: group_summary }
+- id: skill-summary-3
+  message: "汇总待办给我看看"
+  expect: { category: skill, skill_name: group_summary, intent_type: group_summary }
+- id: skill-summary-4
+  message: "总结最近 50 条"
+  expect: { category: skill, skill_name: group_summary, intent_type: group_summary }
+- id: skill-summary-5
+  message: "聊天总结发出来"
+  expect: { category: skill, skill_name: group_summary, intent_type: group_summary }
+
 # ── Hermes 显式升级 (2 条) ──────────────────────────────────────────────────────
 - id: task-hermes-1
   message: "这个交给hermes 来处理吧"
